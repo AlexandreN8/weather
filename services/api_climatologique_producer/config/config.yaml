@@ -1,0 +1,12 @@
+# Configuration API Climatologique
+api_url: "https://public-api.meteofrance.fr/public/DPClim/v1"
+fetch_timeout: 10  # Timeout pour les requêtes HTTP en secondes
+max_concurrent_requests: 1  # Limit the number of concurrent requests
+
+# Configuration Kafka
+kafka_broker: "ter_kafka:9092"  # Adresse du broker Kafka
+topic_name: "weather-certified"  # Nom du topic Kafka pour les données certifiées
+
+# Logging
+log_file: "logs/climatology_producer.log"  # Fichier de log
+

@@ -1,0 +1,16 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install the necessary dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Create the logs directory
+RUN mkdir -p /app/logs
+
+# Copy the application files
+COPY . .
+
+# Set the default command
+CMD ["python", "producer.py"]

@@ -1,0 +1,3 @@
+api_url: "https://public-api.meteofrance.fr/public/DPObs/v1"
+fetch_timeout: 10  # Timeout for HTTP requests
+max_concurrent_requests: 5  # Limit the number of concurrent requests

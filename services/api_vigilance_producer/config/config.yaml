@@ -1,0 +1,3 @@
+api_url: "https://public-api.meteofrance.fr/public/DPVigilance/v1/textesvigilance/encours"
+fetch_timeout: 10  # Timeout for HTTP requests
+kafka_broker: "ter_kafka:9092" 

@@ -1,0 +1,6 @@
+# Credantials
+.env
+
+# Temporary files
+logs
+volumes

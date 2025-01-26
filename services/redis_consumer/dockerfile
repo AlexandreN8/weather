@@ -1,0 +1,12 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install the necessary dependencies
+RUN pip install --no-cache-dir kafka-python redis
+
+# Copy the application files
+COPY . .
+
+# Set the default command
+CMD ["python", "redis_consumer.py"]

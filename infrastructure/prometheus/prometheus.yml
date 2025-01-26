@@ -1,0 +1,30 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Scraper Prometheus
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Scraper Node Exporter
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['ter_prometheus-node-exporter:9100']
+
+  # Scraper MongoDB Exporter
+  - job_name: 'mongodb-exporter'
+    static_configs:
+      - targets: ['ter_prometheus-mongodb-exporter:9216']
+
+  # Scraper Kafka Exporter
+  - job_name: 'kafka-exporter'
+    static_configs:
+      - targets: ['ter_prometheus-kafka-exporter:9308']
+
+  # Scraper Redis Exporter
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['ter_prometheus-redis-exporter:9121']
+
