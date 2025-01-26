@@ -105,7 +105,7 @@ services:
     image: mongo:5.0
     container_name: ter_mongodb
     ports:
-      - "27017:27017"
+      - "35000:35000"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
@@ -265,7 +265,7 @@ services:
     container_name: ter_prometheus
     volumes:
       - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./volumes/ter_prometheus_data:/prometheus
+      - ter_prometheus_data:/prometheus
       - ./logs/prometheus:/prometheus/logs
     ports:
       - "9090:9090"
