@@ -4,3 +4,6 @@
 # Temporary files
 logs
 volumes
+
+# WEB
+node_modules

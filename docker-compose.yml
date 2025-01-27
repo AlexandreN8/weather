@@ -3,8 +3,6 @@ version: "3.8"
 networks:
   pipeline-net:
     driver: bridge
-  client-net:
-    driver: bridge
 
 services:
 
@@ -18,7 +16,7 @@ services:
     ports:
       - "2181:2181"
     volumes:
-      - ./volumes/ter_zookeeper_data:/data
+      - ter_zookeeper_data:/data
       - ./logs/ter_zookeeper_datalog:/datalog
     networks:
       - pipeline-net
@@ -40,7 +38,7 @@ services:
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://ter_kafka:9092
       - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
     volumes:
-      - ./volumes/ter_kafka_data:/var/lib/kafka
+      - ter_kafka_data:/var/lib/kafka
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "kafka-topics.sh", "--list", "--bootstrap-server", "localhost:9092"]
@@ -53,7 +51,7 @@ services:
       zookeeper:
         condition: service_healthy
 
-  # Init Kafka Topics
+  # [TODO : this logic is too random] Init Kafka Topics 
   # weather-real-time : 3 partitions & 2 hours retention
   # weather-climatologique : 2 partitions & 7 days retention
   # weather-alerts : 2 partitions & 1 day retention
@@ -65,22 +63,39 @@ services:
         condition: service_healthy
     networks:
       - pipeline-net
-    entrypoint: >
-      sh -c "
-      sleep 10 &&
-      kafka-topics.sh --create --topic weather-real-time --bootstrap-server ter_kafka:9092 --partitions 3 --replication-factor 1 &&
-      kafka-configs.sh --bootstrap-server ter_kafka:9092 --entity-type topics --entity-name weather-real-time --alter --add-config retention.ms=7200000,compression.type=snappy &&
-      kafka-topics.sh --create --topic weather-verified --bootstrap-server ter_kafka:9092 --partitions 2 --replication-factor 1 &&
-      kafka-configs.sh --bootstrap-server ter_kafka:9092 --entity-type topics --entity-name weather-verified --alter --add-config retention.ms=604800000 &&
-      kafka-topics.sh --create --topic weather-alerts --bootstrap-server ter_kafka:9092 --partitions 2 --replication-factor 1 &&
-      kafka-configs.sh --bootstrap-server ter_kafka:9092 --entity-type topics --entity-name weather-alerts --alter --add-config retention.ms=86400000 &&
-      echo 'Topics successfully created and configured.'"
+    environment:
+      - KAFKA_ZOOKEEPER_CONNECT=ter_zookeeper:2181
     healthcheck:
-      test: ["CMD", "kafka-topics.sh", "--list", "--bootstrap-server", "ter_kafka:9092"]
+      test: ["CMD", "kafka-topics.sh", "--list", "--zookeeper", "ter_zookeeper:2181"]
       interval: 5s
       timeout: 10s
       retries: 3
     restart: "no"
+    entrypoint: >
+      sh -c "
+      echo 'Waiting for Kafka to be ready...';
+      until kafka-topics.sh --list --zookeeper ter_zookeeper:2181; do
+        echo 'Kafka is not ready yet, retrying in 5 seconds...';
+        sleep 5;
+      done;
+
+      echo 'Creating topics...';
+
+      kafka-topics.sh --create --topic weather-real-time --zookeeper ter_zookeeper:2181 --partitions 3 --replication-factor 1;
+      kafka-configs.sh --zookeeper ter_zookeeper:2181 --entity-type topics --entity-name weather-real-time \
+        --alter --add-config retention.ms=7200000,compression.type=snappy;
+
+      kafka-topics.sh --create --topic weather-verified --zookeeper ter_zookeeper:2181 --partitions 2 --replication-factor 1;
+      kafka-configs.sh --zookeeper ter_zookeeper:2181 --entity-type topics --entity-name weather-verified \
+        --alter --add-config retention.ms=604800000;
+
+      kafka-topics.sh --create --topic weather-alerts --zookeeper ter_zookeeper:2181 --partitions 2 --replication-factor 1;
+      kafka-configs.sh --zookeeper ter_zookeeper:2181 --entity-type topics --entity-name weather-alerts \
+        --alter --add-config retention.ms=86400000;
+
+      echo 'Topics successfully created.';
+      touch /topics_initialized;
+      "
 
   kafka-ui:
     container_name: ter_kafka-ui
@@ -110,7 +125,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
-      - ./volumes/ter_mongodb_data:/data/db
+      - ter_mongodb_data:/data/db
     depends_on:
       kafka:
         condition: service_healthy
@@ -211,7 +226,7 @@ services:
   #     - kafka
   #     - mongo
   #   networks:
-  #     - client-net
+  #     - pipeline-net
 
   redis_consumer:
     build:
@@ -231,11 +246,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "kafka-topics.sh", "--describe", "--list", "--bootstrap-server", "ter_kafka:9092"]
-      interval: 5s
-      timeout: 10s
-      retries: 3
     networks:
       - pipeline-net
 
@@ -251,9 +261,8 @@ services:
       - "3000:3000"
     networks:
       - pipeline-net
-      - client-net
     volumes:
-      - ./volumes/ter_grafana_data:/var/lib/grafana
+      - ter_grafana_data:/var/lib/grafana
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
@@ -271,7 +280,6 @@ services:
       - "9090:9090"
     networks:
       - pipeline-net
-      - client-net
 
   prometheus-node-exporter:
     image: prom/node-exporter:latest
@@ -318,12 +326,36 @@ services:
       REDIS_PASSWORD: "${REDIS_PASSWORD}" 
     restart: unless-stopped
 
+  #-------------------------------------------------------
+  # Client web
+  #-------------------------------------------------------
+
+  backend:
+    build:
+      context: ./services/backend
+    container_name: ter_backend
+    ports:
+      - "5000:5000" 
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - MONGO_INITDB_ROOT_USERNAME= ${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD= ${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - ./services/backend:/usr/src/app
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - pipeline-net
 
 volumes:
-  ter_mongo_data:
+  ter_mongodb_data:
   ter_kafka_data:
   ter_zookeeper_data:
   ter_zookeeper_datalog:
   ter_kafka_manager_logs:
   ter_prometheus_data:
   ter_grafana_data:
+
