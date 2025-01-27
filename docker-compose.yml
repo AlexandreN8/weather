@@ -350,6 +350,20 @@ services:
     networks:
       - pipeline-net
 
+  frontend:
+    build:
+      context: ./services/frontend
+    container_name: ter_frontend
+    ports:
+      - "3001:3001" 
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5000 
+    depends_on:
+      - backend
+    networks:
+      - pipeline-net
+
+
 volumes:
   ter_mongodb_data:
   ter_kafka_data:
