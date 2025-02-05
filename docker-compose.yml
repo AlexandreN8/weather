@@ -358,6 +358,10 @@ services:
       - "3001:3001" 
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:5000 
+      - PORT=3001
+    volumes:
+      - ./services/frontend:/usr/src/app
+      - /usr/src/app/node_modules
     depends_on:
       - backend
     networks:
