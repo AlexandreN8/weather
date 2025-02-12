@@ -51,10 +51,6 @@ services:
       zookeeper:
         condition: service_healthy
 
-  # [TODO : this logic is too random] Init Kafka Topics 
-  # weather-real-time : 3 partitions & 2 hours retention
-  # weather-climatologique : 2 partitions & 7 days retention
-  # weather-alerts : 2 partitions & 1 day retention
   kafka-topic-init:
     image: wurstmeister/kafka
     container_name: kafka_topic_initializer
@@ -65,37 +61,15 @@ services:
       - pipeline-net
     environment:
       - KAFKA_ZOOKEEPER_CONNECT=ter_zookeeper:2181
+    volumes:
+      - ./infrastructure/kafka:/init_scripts  
     healthcheck:
-      test: ["CMD", "kafka-topics.sh", "--list", "--zookeeper", "ter_zookeeper:2181"]
+      test: ["CMD", "kafka-topics.sh", "--list", "--bootstrap-server", "ter_kafka:9092"]
       interval: 5s
       timeout: 10s
       retries: 3
     restart: "no"
-    entrypoint: >
-      sh -c "
-      echo 'Waiting for Kafka to be ready...';
-      until kafka-topics.sh --list --zookeeper ter_zookeeper:2181; do
-        echo 'Kafka is not ready yet, retrying in 5 seconds...';
-        sleep 5;
-      done;
-
-      echo 'Creating topics...';
-
-      kafka-topics.sh --create --topic weather-real-time --zookeeper ter_zookeeper:2181 --partitions 3 --replication-factor 1;
-      kafka-configs.sh --zookeeper ter_zookeeper:2181 --entity-type topics --entity-name weather-real-time \
-        --alter --add-config retention.ms=7200000,compression.type=snappy;
-
-      kafka-topics.sh --create --topic weather-verified --zookeeper ter_zookeeper:2181 --partitions 2 --replication-factor 1;
-      kafka-configs.sh --zookeeper ter_zookeeper:2181 --entity-type topics --entity-name weather-verified \
-        --alter --add-config retention.ms=604800000;
-
-      kafka-topics.sh --create --topic weather-alerts --zookeeper ter_zookeeper:2181 --partitions 2 --replication-factor 1;
-      kafka-configs.sh --zookeeper ter_zookeeper:2181 --entity-type topics --entity-name weather-alerts \
-        --alter --add-config retention.ms=86400000;
-
-      echo 'Topics successfully created.';
-      touch /topics_initialized;
-      "
+    entrypoint: ["/bin/sh", "-c", "sh /init_scripts/init_kafka_topics.sh"]
 
   kafka-ui:
     container_name: ter_kafka-ui
@@ -127,8 +101,8 @@ services:
     volumes:
       - ter_mongodb_data:/data/db
     depends_on:
-      kafka:
-        condition: service_healthy
+      kafka-topic-init:
+        condition: service_completed_successfully
     networks:
       - pipeline-net
     healthcheck:
@@ -150,8 +124,8 @@ services:
       timeout: 5s
       retries: 3
     depends_on:
-      kafka:
-        condition: service_healthy
+      kafka-topic-init:
+        condition: service_completed_successfully
     networks:
       - pipeline-net
 
@@ -172,7 +146,7 @@ services:
       - API_TOKEN=${API_TOKEN_OBS}
     depends_on:
       kafka-topic-init:
-        condition: service_healthy
+        condition: service_completed_successfully
     networks:
       - pipeline-net
 
@@ -189,7 +163,7 @@ services:
       - API_TOKEN=${API_TOKEN_CLIMA}
     depends_on:
       kafka-topic-init:
-        condition: service_healthy
+        condition: service_completed_successfully
     networks:
       - pipeline-net
 
@@ -205,7 +179,7 @@ services:
       - API_TOKEN=${API_TOKEN_VIGILANCE}
     depends_on:
       kafka-topic-init:
-        condition: service_healthy
+        condition: service_completed_successfully
     networks:
       - pipeline-net
 
@@ -243,7 +217,7 @@ services:
       - KAFKA_TOPICS=weather-real-time,weather-alerts
     depends_on:
       kafka-topic-init:
-        condition: service_healthy
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
     networks:
@@ -345,8 +319,8 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
-      kafka:
-        condition: service_healthy
+      kafka-topic-init:
+        condition: service_completed_successfully
     networks:
       - pipeline-net
 

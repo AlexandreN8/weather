@@ -158,8 +158,8 @@ if __name__ == "__main__":
     scheduled_task()  # Run the task once at startup
     logging.info("Initialisation du scheduler.")
     scheduler = BlockingScheduler()
-    scheduler.add_job(scheduled_task, 'interval', minutes=1) # Run the task at the specified interval
-    logging.info("Scheduler démarré. Requête toutes les 1 minutes.")
+    scheduler.add_job(scheduled_task, 'interval', minutes=30) # Run the task at the specified interval
+    logging.info("Scheduler démarré. Requête toutes les 30 minutes.")
     
     try:
         scheduler.start()
