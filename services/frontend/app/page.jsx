@@ -1,11 +1,8 @@
 export default function Home() {
   return (
-    <div>
-      <div>
-        <h1>Home</h1>
-        <p>TEST</p>
-        <p>2222</p>
-      </div>
+    <div className="text-center">
+      <h1 className="text-4xl font-bold text-blue-700">Bienvenue sur Saphir</h1>
+      <p className="text-lg text-gray-700 mt-4 ">Consultez les données météo en temps réel.</p>
     </div>
   );
 }
