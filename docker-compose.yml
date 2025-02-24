@@ -140,8 +140,8 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./infrastructure/postgresSQL:/docker-entrypoint-initdb.d
+      - ter_postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/postgres:/docker-entrypoint-initdb.d
     networks:
       - pipeline-net
     healthcheck:
