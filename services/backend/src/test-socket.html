@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Socket.IO en temps réel</title>
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    #dataDisplay { background: #f0f0f0; padding: 10px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h1>Mise à jour en temps réel des données Redis</h1>
+  <div id="dataDisplay">En attente de mises à jour...</div>
+
+  <script>
+    // Initialisation du client Socket.IO avec les options de reconnexion
+    const socket = io('http://localhost:5000', {
+      transports: ['websocket'],
+      reconnection: true,           // Active la reconnexion automatique
+      reconnectionAttempts: 10,     // Nombre maximum de tentatives
+      reconnectionDelay: 1000,      // Délai initial entre les tentatives en ms
+      reconnectionDelayMax: 5000,   // Délai maximal entre les tentatives en ms
+      timeout: 20000                // Délai avant que la tentative de connexion ne soit considérée comme échouée (ms)
+    });
+
+    // Écoute des événements de reconnexion
+    socket.on('reconnect_attempt', (attemptNumber) => {
+      console.log(`Tentative de reconnexion n°${attemptNumber}`);
+    });
+
+    socket.on('reconnect', (attemptNumber) => {
+      console.log(`Reconnexion réussie après ${attemptNumber} tentatives`);
+    });
+
+    socket.on('reconnect_error', (error) => {
+      console.error('Erreur lors de la reconnexion:', error);
+    });
+
+    socket.on('reconnect_failed', () => {
+      console.error('Reconnexion échouée après plusieurs tentatives');
+    });
+
+    // Gestion de la connexion initiale
+    socket.on('connect', () => {
+      console.log('Connecté avec Socket.IO !', socket.id);
+    });
+    
+    socket.on('data_update', (data) => {
+      console.log('Mise à jour reçue:', data);
+      const display = document.getElementById('dataDisplay');
+      // Affiche les données reçues sous forme JSON formatée
+      display.innerHTML = JSON.stringify(data, null, 2);
+    });
+    
+    socket.on('disconnect', () => {
+      console.log('Déconnecté du serveur');
+    });
+  </script>
+</body>
+</html>
