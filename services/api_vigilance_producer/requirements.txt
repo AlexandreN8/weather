@@ -2,3 +2,4 @@ kafka-python
 pyyaml
 httpx
 apscheduler
+prometheus_client
