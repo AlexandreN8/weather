@@ -143,7 +143,7 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--notify-keyspace-events", "KEA"]
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 5s
@@ -155,6 +155,27 @@ services:
     networks:
       - pipeline-net
 
+  postgres:
+    image: postgres:13
+    container_name: ter_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Optionnel : si tu as des scripts d'initialisation SQL
+      - ./initdb:/docker-entrypoint-initdb.d
+    networks:
+      - pipeline-net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
   #-------------------------------------------------------
   # API Producers
   #-------------------------------------------------------
@@ -336,33 +357,45 @@ services:
     container_name: ter_backend
     ports:
       - "5000:5000" 
+    
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - MONGO_INITDB_ROOT_USERNAME= ${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD= ${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@ter_postgres:5432/${POSTGRES_DB}
     volumes:
       - ./services/backend:/usr/src/app
+      
     depends_on:
       mongodb:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
     networks:
       - pipeline-net
 
-  frontend:
-    build:
-      context: ./services/frontend
-    container_name: ter_frontend
-    ports:
-      - "3001:3001" 
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:5000 
-    depends_on:
-      - backend
-    networks:
-      - pipeline-net
+  # frontend:
+  #   build:
+  #     context: ./services/frontend
+  #   container_name: ter_frontend
+  #   ports:
+  #     - "3001:3001" 
+  #   environment:
+  #     - NEXT_PUBLIC_API_URL=http://localhost:5000 
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - pipeline-net*/
 
+  
 
 volumes:
   ter_mongodb_data:
@@ -372,4 +405,5 @@ volumes:
   ter_kafka_manager_logs:
   ter_prometheus_data:
   ter_grafana_data:
+  ter_postgres_data:
 
