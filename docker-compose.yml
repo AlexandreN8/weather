@@ -141,8 +141,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # Optionnel : si tu as des scripts d'initialisation SQL
-      - ./initdb:/docker-entrypoint-initdb.d
+      - ./infrastructure/postgresSQL:/docker-entrypoint-initdb.d
     networks:
       - pipeline-net
     healthcheck:
