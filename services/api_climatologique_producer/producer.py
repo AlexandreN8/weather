@@ -464,7 +464,7 @@ if __name__ == "__main__":
         logging.info("Fin du job planifié (Climatologique).")
 
     # DEV env : Run every N minutes
-    scheduler.add_job(scheduled_job, 'interval', minutes=10)
+    scheduler.add_job(scheduled_job, 'interval', minutes=5)
     logging.info("Job planifié pour s'exécuter toutes les minutes (mode développement).")
 
     # PROD env : Run daily at 12:30

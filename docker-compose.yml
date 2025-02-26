@@ -264,6 +264,8 @@ services:
       - pipeline-net
     volumes:
       - ter_grafana_data:/var/lib/grafana
+      - ./infrastructure/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./infrastructure/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
