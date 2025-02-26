@@ -4,17 +4,16 @@ import time
 from urllib.parse import quote_plus
 import json
 import logging
+import os
 
 # Configuration Kafka
 KAFKA_BROKER = "ter_kafka:9092"  # Adresse de Kafka
 TOPIC_NAME = "weather-verified"  # Topic à écouter
 
 # Configuration MongoDB
-
-
-username = quote_plus('admin')
-password = quote_plus('password')
-MONGO_URI = f"mongodb://{username}:{password}@ter_mongodb:27017/"
+MONGO_USER = os.getenv("MONGO_INITDB_ROOT_USERNAME")
+MONGO_PASS = os.getenv("MONGO_INITDB_ROOT_PASSWORD")
+MONGO_URI = f"mongodb://{MONGO_USER}:{MONGO_PASS}@ter_mongodb:27017/"
 
 DB_NAME = "weatherDB"
 COLLECTION_NAME = "weatherData"
@@ -42,11 +41,14 @@ def main():
     db = client[DB_NAME]
     collection = db[COLLECTION_NAME]
 
+    logging.info(f"URI de connexion à MongoDB : {MONGO_URI}")
+
     # Connexion à Kafka
     consumer = KafkaConsumer(
         TOPIC_NAME,
         bootstrap_servers=KAFKA_BROKER,
         auto_offset_reset='earliest',
+        group_id="mongo-consumer-group",
         value_deserializer=lambda x: json.loads(x.decode('utf-8'))
     )
 
