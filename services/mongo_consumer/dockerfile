@@ -1,1 +1,15 @@
-# TODO
+# Utiliser une image Python officielle
+FROM python:3.11-slim   
+
+# Définir le dossier de travail dans le conteneur
+WORKDIR /app
+
+# Copier les fichiers nécessaires dans le conteneur
+COPY mongo_consumer.py .  
+COPY requirements.txt . 
+
+# Installer les dépendances Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Définir la commande d'exécution du script
+CMD ["python", "mongo_consumer.py"]

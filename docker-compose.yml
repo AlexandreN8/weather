@@ -94,7 +94,7 @@ services:
     image: mongo:5.0
     container_name: ter_mongodb
     ports:
-      - "35000:35000"
+      - "27017:27017" #
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
@@ -213,20 +213,21 @@ services:
   # Consumers
   #-------------------------------------------------------
 
-  # mongo_consumer:
-  #   build:
-  #     context: ./services/mongo_consumer
-  #   container_name: ter_mongo_consumer
-  #   volumes:
-  #     - ./services/mongo_consumer:/app
-  #   environment:
-  #     - MONGO_URI=${MONGO_URI}
-  #     - KAFKA_BROKER=${KAFKA_BROKER}
-  #   depends_on:
-  #     - kafka
-  #     - mongo
-  #   networks:
-  #     - pipeline-net
+  mongo_consumer:
+    build:
+      context: ./services/mongo_consumer
+    container_name: ter_mongo_consumer
+    volumes:
+      - ./services/mongo_consumer:/app
+    environment:
+      - KAFKA_BROKER=${KAFKA_BROKER}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    depends_on:
+      - kafka
+      - mongodb
+    networks:
+      - pipeline-net
 
   redis_consumer:
     build:
