@@ -14,3 +14,10 @@ COPY . .
 
 # Set the default command
 CMD ["python", "producer.py"]
+
+# TEST
+# Définir PYTHONPATH pour que Python trouve api_observations_producer
+# ENV PYTHONPATH="/app:${PYTHONPATH}"
+
+# Set the default command
+# CMD ["pytest", "test/test_producer.py"]

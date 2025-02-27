@@ -171,6 +171,8 @@ services:
         condition: service_healthy
     networks:
       - pipeline-net
+    # TEST
+    # command: ["pytest", "--maxfail=5", "--disable-warnings", "-v"]
 
   api_climatologique_producer:
     build:

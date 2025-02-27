@@ -131,10 +131,41 @@ def record_batch_duration(batch_index, start_time):
 # -------------------------------------------------------------------
 # UTILITY FUNCTIONS
 # -------------------------------------------------------------------
+logger = logging.getLogger(__name__)
+
+#liste des horodatages des requêtes envoyées
+request_times = []
+
+def add_request_times():
+    """ Permet d'ajouter un horodatage à la liste des requêtes. """
+    global request_times
+    request_times.append(time.time())  # Ajouter l'horodatage actuel
+
+def check_request_rate(request_times=request_times):
+    """ Vérifie le nombre de requêtes dans la dernière minute et lève une exception si la limite est dépassée. """
+    #global request_times
+    current_time = time.time()  # Temps actuel
+    
+    # Filtrer les horodatages qui sont plus vieux que 60 secondes
+    request_times = [timestamp for timestamp in request_times if current_time - timestamp < 60]
+    
+    # Log de l'état de la liste après nettoyage
+    logger.info(f"Nombre de requêtes conservées après nettoyage: {len(request_times)}")
+    logger.info(f"Horodatages actuels: {request_times}")
+    
+    # Si on dépasse la limite de 50 requêtes dans la fenêtre d'une minute, lever l'exception
+    if len(request_times) > 50:
+        logger.error(f"Limite dépassée ! Nombre de requêtes : {len(request_times)}")
+        raise Exception("Trop de requêtes envoyées en moins d'une minute")
+
+#Avec les fonction asynchrone il est utile d'utiliser await pour avoir directement les résultats et pas des coroutines qui sont des fonctions a exécuté.
 async def fetch_station_data(station_id, retries=3):
     ''' Fetches weather data for a specific station. '''
     headers = {"apikey": API_TOKEN}
     params = {"id_station": station_id, "format": "json"}
+    
+    check_request_rate()
+    add_request_times()
 
     # Retry mechanism
     for attempt in range(1, retries + 1):
@@ -147,6 +178,7 @@ async def fetch_station_data(station_id, retries=3):
                 if response.status_code == 200:
                     OBS_FETCH_ATTEMPTS.labels(station_id=station_id, status="success").inc()
                     return response.json()
+                    # return await response.json() # TEST ajout d'un await pour éviter d'avoir une coroutine mais directement les données JSON
 
                 elif response.status_code == 429:
                     logging.warning(f"Quota de requétes dépassé pour la station {station_id}.")
