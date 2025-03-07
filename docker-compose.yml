@@ -382,6 +382,7 @@ services:
     networks:
       - pipeline-net
 
+<<<<<<< HEAD
   # frontend:
   #   build:
   #     context: ./services/frontend
@@ -394,6 +395,24 @@ services:
   #     - backend
   #   networks:
   #     - pipeline-net*/
+=======
+  frontend:
+    build:
+      context: ./services/frontend
+    container_name: ter_frontend
+    ports:
+      - "3001:3001" 
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5000 
+      - PORT=3001
+    volumes:
+      - ./services/frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - pipeline-net
+>>>>>>> frontend
 
   
 
