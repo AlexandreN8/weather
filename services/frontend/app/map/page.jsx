@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function MapPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredStations, setFilteredStations] = useState([]);
+  const router = useRouter();
 
   // Liste des stations météo en Corse
   const stations = [
@@ -61,7 +63,10 @@ export default function MapPage() {
         />
         <ul>
           {filteredStations.map((station, index) => (
-            <li key={index} className="p-2 border rounded mb-2 cursor-pointer hover:bg-blue-500">
+            <li key={index}
+                className="p-2 border rounded mb-2 cursor-pointer hover:bg-blue-500"
+                onClick={() => router.push(`/stations/${station.name.toLowerCase()}`)}
+            >
               {station.name}
             </li>
           ))}
