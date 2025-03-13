@@ -20,7 +20,7 @@ def connect_to_mongo():
     while retries > 0:
         try:
             client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-            print(client.server_info())  # Vérifie si MongoDB est dispo
+            print(client.server_info()) 
             logging.info("Connexion à MongoDB réussie")
             return client
         except Exception as e:
@@ -35,14 +35,12 @@ client = connect_to_mongo()
 db = client[DB_NAME]
 collection = db[COLLECTION_NAME]
 archive_collection = db["archiveData"]
-
 def archive_documents():
     print("Archivage des documents expirés...")
     now = datetime.utcnow()
     
     # Récupérer les documents sur le point d'expirer
     documents = list(source_collection.find({"created_at": {"$lt": now}}))
-
     if documents:
         # Insérer dans la collection d'archive
         archive_collection.insert_many(documents)

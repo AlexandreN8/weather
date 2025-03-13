@@ -6,10 +6,11 @@ WORKDIR /app
 
 # Copier les fichiers nécessaires dans le conteneur
 COPY mongo_consumer.py .  
+COPY archive_manager.py .  
 COPY requirements.txt . 
 
 # Installer les dépendances Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Définir la commande d'exécution du script
-CMD ["python", "mongo_consumer.py"]
+# Exécuter la création de l'index TTL avant de démarrer le consommateur
+CMD ["sh", "-c", "python archive_manager.py && python mongo_consumer.py"]
