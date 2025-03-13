@@ -7,3 +7,7 @@ volumes
 
 # WEB
 node_modules
+
+# Test
+.pytest_cache
+__pycache__

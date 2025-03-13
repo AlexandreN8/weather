@@ -51,10 +51,6 @@ services:
       zookeeper:
         condition: service_healthy
 
-  # [TODO : this logic is too random] Init Kafka Topics 
-  # weather-real-time : 3 partitions & 2 hours retention
-  # weather-climatologique : 2 partitions & 7 days retention
-  # weather-alerts : 2 partitions & 1 day retention
   kafka-topic-init:
     image: wurstmeister/kafka
     container_name: kafka_topic_initializer
@@ -65,37 +61,15 @@ services:
       - pipeline-net
     environment:
       - KAFKA_ZOOKEEPER_CONNECT=ter_zookeeper:2181
+    volumes:
+      - ./infrastructure/kafka:/init_scripts  
     healthcheck:
-      test: ["CMD", "kafka-topics.sh", "--list", "--zookeeper", "ter_zookeeper:2181"]
+      test: ["CMD", "kafka-topics.sh", "--list", "--bootstrap-server", "ter_kafka:9092"]
       interval: 5s
       timeout: 10s
       retries: 3
     restart: "no"
-    entrypoint: >
-      sh -c "
-      echo 'Waiting for Kafka to be ready...';
-      until kafka-topics.sh --list --zookeeper ter_zookeeper:2181; do
-        echo 'Kafka is not ready yet, retrying in 5 seconds...';
-        sleep 5;
-      done;
-
-      echo 'Creating topics...';
-
-      kafka-topics.sh --create --topic weather-real-time --zookeeper ter_zookeeper:2181 --partitions 3 --replication-factor 1;
-      kafka-configs.sh --zookeeper ter_zookeeper:2181 --entity-type topics --entity-name weather-real-time \
-        --alter --add-config retention.ms=7200000,compression.type=snappy;
-
-      kafka-topics.sh --create --topic weather-verified --zookeeper ter_zookeeper:2181 --partitions 2 --replication-factor 1;
-      kafka-configs.sh --zookeeper ter_zookeeper:2181 --entity-type topics --entity-name weather-verified \
-        --alter --add-config retention.ms=604800000;
-
-      kafka-topics.sh --create --topic weather-alerts --zookeeper ter_zookeeper:2181 --partitions 2 --replication-factor 1;
-      kafka-configs.sh --zookeeper ter_zookeeper:2181 --entity-type topics --entity-name weather-alerts \
-        --alter --add-config retention.ms=86400000;
-
-      echo 'Topics successfully created.';
-      touch /topics_initialized;
-      "
+    entrypoint: ["/bin/sh", "-c", "sh /init_scripts/init_kafka_topics.sh"]
 
   kafka-ui:
     container_name: ter_kafka-ui
@@ -127,8 +101,8 @@ services:
     volumes:
       - ter_mongodb_data:/data/db
     depends_on:
-      kafka:
-        condition: service_healthy
+      kafka-topic-init:
+        condition: service_completed_successfully
     networks:
       - pipeline-net
     healthcheck:
@@ -143,18 +117,38 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--notify-keyspace-events", "KEA"]
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 5s
       timeout: 5s
       retries: 3
     depends_on:
-      kafka:
-        condition: service_healthy
+      kafka-topic-init:
+        condition: service_completed_successfully
     networks:
       - pipeline-net
 
+  postgres:
+    image: postgres:13
+    container_name: ter_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ter_postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/postgres:/docker-entrypoint-initdb.d
+    networks:
+      - pipeline-net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
   #-------------------------------------------------------
   # API Producers
   #-------------------------------------------------------
@@ -172,9 +166,13 @@ services:
       - API_TOKEN=${API_TOKEN_OBS}
     depends_on:
       kafka-topic-init:
+        condition: service_completed_successfully
+      redis:
         condition: service_healthy
     networks:
       - pipeline-net
+    # TEST
+    # command: ["pytest", "--maxfail=5", "--disable-warnings", "-v"]
 
   api_climatologique_producer:
     build:
@@ -189,6 +187,8 @@ services:
       - API_TOKEN=${API_TOKEN_CLIMA}
     depends_on:
       kafka-topic-init:
+        condition: service_completed_successfully
+      mongodb:
         condition: service_healthy
     networks:
       - pipeline-net
@@ -205,6 +205,8 @@ services:
       - API_TOKEN=${API_TOKEN_VIGILANCE}
     depends_on:
       kafka-topic-init:
+        condition: service_completed_successfully
+      redis:
         condition: service_healthy
     networks:
       - pipeline-net
@@ -244,7 +246,7 @@ services:
       - KAFKA_TOPICS=weather-real-time,weather-alerts
     depends_on:
       kafka-topic-init:
-        condition: service_healthy
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
     networks:
@@ -264,6 +266,8 @@ services:
       - pipeline-net
     volumes:
       - ter_grafana_data:/var/lib/grafana
+      - ./infrastructure/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./infrastructure/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
@@ -327,6 +331,20 @@ services:
       REDIS_PASSWORD: "${REDIS_PASSWORD}" 
     restart: unless-stopped
 
+  cadvisor:
+    image: google/cadvisor:latest
+    container_name: ter_cadvisor
+    ports:
+      - "8090:8080" 
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+    restart: always
+    privileged: true
+    networks:
+      - pipeline-net
+
   #-------------------------------------------------------
   # Client web
   #-------------------------------------------------------
@@ -337,16 +355,29 @@ services:
     container_name: ter_backend
     ports:
       - "5000:5000" 
+    
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - MONGO_INITDB_ROOT_USERNAME= ${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD= ${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@ter_postgres:5432/${POSTGRES_DB}
     volumes:
       - ./services/backend:/usr/src/app
+      
     depends_on:
       mongodb:
         condition: service_healthy
-      kafka:
+      kafka-topic-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     networks:
       - pipeline-net
@@ -359,11 +390,14 @@ services:
       - "3001:3001" 
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:5000 
+      - PORT=3001
+    volumes:
+      - ./services/frontend:/usr/src/app
+      - /usr/src/app/node_modules
     depends_on:
       - backend
     networks:
       - pipeline-net
-
 
 volumes:
   ter_mongodb_data:
@@ -373,4 +407,5 @@ volumes:
   ter_kafka_manager_logs:
   ter_prometheus_data:
   ter_grafana_data:
+  ter_postgres_data:
 

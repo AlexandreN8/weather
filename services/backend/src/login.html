@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    form { max-width: 300px; margin: auto; }
+    label, input { display: block; width: 100%; margin-bottom: 10px; }
+    button { padding: 8px 16px; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Connexion</h1>
+  <form id="loginForm">
+    <label for="username">Nom d'utilisateur</label>
+    <input type="text" id="username" name="username" required>
+    
+    <label for="password">Mot de passe</label>
+    <input type="password" id="password" name="password" required>
+    
+    <button type="submit">Se connecter</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      
+      try {
+        const response = await fetch('http://localhost:5000/api/users/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        const resultDiv = document.getElementById('result');
+        
+        if (response.ok) {
+          // Connexion réussie : affichage du token ou redirection
+          resultDiv.innerHTML = `<p>Connexion réussie !</p><p>Token : ${data.token}</p>`;
+          console.log('Utilisateur connecté :', data.user);
+        } else {
+          // Erreur lors de la connexion
+          resultDiv.innerHTML = `<p class="error">Erreur : ${data.error || 'Identifiants invalides.'}</p>`;
+        }
+      } catch (error) {
+        console.error('Erreur lors de la connexion :', error);
+        document.getElementById('result').innerHTML = `<p class="error">Erreur lors de la connexion.</p>`;
+      }
+    });
+  </script>
+</body>
+</html>

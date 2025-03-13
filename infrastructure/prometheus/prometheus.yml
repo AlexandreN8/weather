@@ -28,3 +28,22 @@ scrape_configs:
     static_configs:
       - targets: ['ter_prometheus-redis-exporter:9121']
 
+  # Scraper cAdvisor
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['ter_cadvisor:8080']
+
+  # Scraper API Climatologique
+  - job_name: 'api-climatologique'
+    static_configs:
+      - targets: ['ter_api_climatologique_producer:8000']
+    
+  # Scraper API Observations
+  - job_name: 'api-observations'
+    static_configs:
+      - targets: ['ter_api_observations_producer:8001']
+
+  # Scrapper API Vigilance
+  - job_name: 'api-vigilance'
+    static_configs:
+      - targets: ['ter_api_vigilance_producer:8002']

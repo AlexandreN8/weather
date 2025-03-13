@@ -39,6 +39,8 @@ def process_real_time_data(redis_client, data):
         redis_client.hset(redis_key, validity_time, json.dumps(data))
         redis_client.expire(redis_key, 3600)  # 1 hour TTL
         logging.info(f"[weather-real-time] Données sauvegardé pour la station : {station_id} (validity_time={validity_time}).")
+        # Publier un événement via Redis Pub/Sub pour notifier le serveur de WebSocket
+        redis_client.publish('data_updates', json.dumps(data))
     except Exception as e:
         logging.error(f"[weather-real-time] Echec message : {e}")
 

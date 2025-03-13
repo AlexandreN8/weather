@@ -6,6 +6,7 @@ import yaml
 import os
 from apscheduler.schedulers.blocking import BlockingScheduler
 import hashlib
+from prometheus_client import start_http_server, Counter, Histogram, Gauge
 
 # Collect almost real-time weather alerts from the Vigilance API and publish them to Kafka
 # API constraint : 60 requests per minute 
@@ -45,6 +46,15 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+# -------------------------------------------------------------------
+# PROMETHEUS METRICS
+# -------------------------------------------------------------------
+# empty = container down, 0 = API is waiting, 1 = API is working
+api_status = Gauge("api_status_vigilance", "Indique si l'API est active")
+
+# Endpoint for Prometheus metrics
+start_http_server(8002)
+logging.info("Serveur Prometheus démarré sur le port 8002.")
 # -------------------------------------------------------------------
 # UTILITY FUNCTIONS
 # -------------------------------------------------------------------
@@ -132,6 +142,7 @@ def publish_alerts_to_kafka(alerts):
 # -------------------------------------------------------------------
 
 def main():
+    api_status.set(1) # API is working
     logging.info("Début de l'interrogation de l'API Vigilance.")
     vigilance_data = fetch_vigilance_data()
 
@@ -146,6 +157,7 @@ def main():
             logging.info("Aucune alerte notable trouvée.")
 
     logging.info("Traitement terminé.")
+    api_status.set(0) # API is waiting
 
 # -------------------------------------------------------------------
 # SCHEDULER
@@ -158,8 +170,8 @@ if __name__ == "__main__":
     scheduled_task()  # Run the task once at startup
     logging.info("Initialisation du scheduler.")
     scheduler = BlockingScheduler()
-    scheduler.add_job(scheduled_task, 'interval', minutes=1) # Run the task at the specified interval
-    logging.info("Scheduler démarré. Requête toutes les 1 minutes.")
+    scheduler.add_job(scheduled_task, 'interval', minutes=30) # Run the task at the specified interval
+    logging.info("Scheduler démarré. Requête toutes les 30 minutes.")
     
     try:
         scheduler.start()
