@@ -7,6 +7,28 @@ networks:
 services:
 
   #-------------------------------------------------------
+  # Nginx 
+  #-------------------------------------------------------
+  nginx:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: ter_nginx_proxy_manager
+    ports:
+      # ports <host-port>:<container-port>
+      - '80:80' # Public HTTP Port
+      - '443:443' # Public HTTPS Port
+      - '81:81' # Admin Web Port
+    volumes:
+      - npm_data:/data #create vol in the container at /data path
+      - npm_letsencrypt:/etc/letsencrypt
+    
+    networks:
+      - pipeline-net
+    restart: unless-stopped
+
+    
+
+
+  #-------------------------------------------------------
   # Kafka & Zookeeper
   #-------------------------------------------------------
 
@@ -400,6 +422,9 @@ services:
       - pipeline-net
 
 volumes:
+  npm_data:
+  npm_letsencrypt:
+
   ter_mongodb_data:
   ter_kafka_data:
   ter_zookeeper_data:
