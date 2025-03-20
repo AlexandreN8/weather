@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import Link from "next/link";
 
 export default function Navbar() {
@@ -8,6 +8,7 @@ export default function Navbar() {
         <Link href="/" className="hover:underline">Accueil</Link>
         <Link href="/map" className="hover:underline">Carte</Link>
         <Link href="/forecast" className="hover:underline">Prévisions</Link>
+        <Link href="/dashboard_admin" className="hover:underline">Admin</Link>
       </div>
     </nav>
   );

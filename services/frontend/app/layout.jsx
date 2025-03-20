@@ -1,9 +1,9 @@
 import "./globals.css";
-import Navbar from "./components/navbar";
+import NavbarFooterWrapper from "./components/NavbarFooterWrapper";
 
 export default function RootLayout({ children }) {
   return (
-<html lang="fr">
+    <html lang="fr">
       <head>
         <link
           rel="stylesheet"
@@ -15,14 +15,12 @@ export default function RootLayout({ children }) {
         ></script>
       </head>
       <body className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-1 flex items-center justify-center p-6">
-          {children}
-        </main>
-        <footer className="bg-gray-800 text-white text-center py-3">
-          © TER 2025
-        </footer>
+        <NavbarFooterWrapper>
+          <main className="flex-1 flex items-center justify-center">
+            {children}
+          </main>
+        </NavbarFooterWrapper>
       </body>
     </html>
-   )
- }
+  );
+}
