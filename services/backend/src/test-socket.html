@@ -48,6 +48,7 @@
     
     socket.on('data_update', (data) => {
       console.log('Mise à jour reçue:', data);
+      
       const display = document.getElementById('dataDisplay');
       // Affiche les données reçues sous forme JSON formatée
       display.innerHTML = JSON.stringify(data, null, 2);

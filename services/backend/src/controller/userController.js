@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { createUser, findUser, findUserByUsername } = require('../model/userModel');
+const { sendConfirmationEmail } = require('../config/mailer');
 
 // fonction qui permet d'enregistrer un nouvel utilisateur
 async function register(req, res) {
@@ -24,6 +25,9 @@ async function register(req, res) {
     
     // Créer l'utilisateur dans la base de données
     const newUser = await createUser(email, username, hashedPassword);
+
+    // Envoyer l'e-mail de confirmation ici
+    await sendConfirmationEmail(email, username);
     
     // On ne retourne pas le mot de passe
     delete newUser.password;

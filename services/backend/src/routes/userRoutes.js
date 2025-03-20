@@ -1,6 +1,7 @@
 const express = require('express');
 const { check, validationResult } = require('express-validator');
 const { register, login } = require('../controller/userController');
+const loginLimiter = require('../middleware/loginLimiter');
 
 const router = express.Router();
 
@@ -26,7 +27,7 @@ router.post('/register', [
   }, register);
 
 // Route de connexion de l'utilisateur
-router.post('/login', login);
+router.post('/login', loginLimiter, login);
 
 
 module.exports = router;

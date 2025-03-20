@@ -18,3 +18,18 @@ VALUES (
     '$2b$10$i3PRLsVQ7TY9J1xguNjdXutP.2Dcv2k1aK.fF5KooJKMhttk2f3CO',
     'admin'
 );
+
+-- Création de la table role_request pour gérer les demandes de changement de rôle
+CREATE TABLE IF NOT EXISTS role_request (
+    id SERIAL PRIMARY KEY,
+    id_user INTEGER NOT NULL,
+    desired_role VARCHAR(50) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user
+      FOREIGN KEY (id_user)
+      REFERENCES users(id)
+      ON DELETE CASCADE,
+    CONSTRAINT status_valid CHECK (status IN ('pending', 'accepté', 'refusé'))
+);
