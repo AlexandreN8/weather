@@ -1,3 +1,5 @@
+#Permet de consommer des messages Kafka et de stocker et de faire des MAJ avec TTL des data dans une base Redis.
+#Permet d'avoir une vrai utilisation des data en temps réel avec une expiration des data qui est possible.
 import redis
 from kafka import KafkaConsumer
 import json
@@ -23,6 +25,7 @@ logging.basicConfig(
 # UTILITY FUNCTIONS
 # -------------------------------------------------------------------
 
+#Permet de garder en mémoire les data météo en temps réel pour chaque station en faisant des MAJ régulières
 def process_real_time_data(redis_client, data):
     """
     Process real-time weather data and save it to Redis.
@@ -45,6 +48,7 @@ def process_real_time_data(redis_client, data):
         logging.error(f"[weather-real-time] Echec message : {e}")
 
 
+#Permet de gérer les alertes météo et de les stocker pendant 24h dans Redis
 def process_alert_data(redis_client, data):
     """
     Process weather alerts and save them to Redis.

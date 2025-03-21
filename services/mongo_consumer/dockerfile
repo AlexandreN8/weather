@@ -7,6 +7,7 @@ WORKDIR /app
 # Copier les fichiers nécessaires dans le conteneur
 COPY mongo_consumer.py .  
 COPY requirements.txt . 
+COPY test/ test/
 
 # Installer les dépendances Python
 RUN pip install --no-cache-dir -r requirements.txt
