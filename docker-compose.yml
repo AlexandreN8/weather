@@ -290,9 +290,14 @@ services:
       - ter_grafana_data:/var/lib/grafana
       - ./infrastructure/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./infrastructure/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      # - ./infrastructure/grafana/provisioning/notifiers:/etc/grafana/provisioning/notifiers
+      - ./infrastructure/grafana/provisioning/alerting:/etc/grafana/provisioning/alerting
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_SECURITY_ALLOW_EMBEDDING: true
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
     restart: unless-stopped
 
   # Prometheus & its Exporters
@@ -380,7 +385,7 @@ services:
     
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - MONGO_URI=mongodb://admin:password@ter_mongodb:27017/maBaseDeDonnees?authSource=admin
+      - MONGO_URI=mongodb://admin:password@ter_mongodb:27017/weatherDB?authSource=admin
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
       - POSTGRES_USER=${POSTGRES_USER}

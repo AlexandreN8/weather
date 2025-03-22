@@ -3,12 +3,18 @@ import { useState, useMemo } from "react";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { FaChevronDown } from "react-icons/fa";
 import { FaUsers } from "react-icons/fa";
-import { FaUser } from "react-icons/fa";
+import { IoPersonAddSharp } from "react-icons/io5";
+
+import CreateUserModal from "../components/CreateUserModal";
+import RequestCard from "../components/RequestCard";
 
 export default function UsersPage() {
+  const [openModal, setOpenModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [openDropdown, setOpenDropdown] = useState(null); 
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   // TODO : dynamic data
   const [users, setUsers] = useState([
@@ -17,6 +23,9 @@ export default function UsersPage() {
     { id: 2001, nom: "Doe", prenom: "Joseph", statut: "Actif", inscritLe: "12-Mar-2025", role: "Décisionnaire" },
     { id: 2002, nom: "Doe", prenom: "Jade", statut: "Inactif", inscritLe: "13-Mar-2025", role: "Utilisateur" },
     { id: 3333, nom: "Jos", prenom: "Jon", statut: "Actif", inscritLe: "14-Mar-2025", role: "Administrateur" },
+    { id: 4678, nom: "Jos", prenom: "Jon", statut: "Actif", inscritLe: "14-Mar-2025", role: "Administrateur" },
+    { id: 2, nom: "Jos", prenom: "Jon", statut: "Actif", inscritLe: "14-Mar-2025", role: "Administrateur" },
+    { id: 3, nom: "Jos", prenom: "Jon", statut: "Actif", inscritLe: "14-Mar-2025", role: "Administrateur" },
   ]);
 
   const roles = ["Administrateur", "Décisionnaire", "Utilisateur"];
@@ -63,7 +72,7 @@ export default function UsersPage() {
     return sortableUsers;
   }, [filteredUsers, sortConfig]);
 
-  // Sort function reverse
+  // Sort function 
   const handleSort = (key) => {
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
@@ -72,87 +81,105 @@ export default function UsersPage() {
     setSortConfig({ key, direction });
   };
 
+  // Total number of pages based on number of users
+  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
+
+  // Get current page users
+  const paginatedUsers = sortedUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+  
+  // Pagination range
+  const getPaginationRange = () => {
+    const totalPageNumbersToShow = 5;
+    if (totalPages <= totalPageNumbersToShow) {
+      return [...Array(totalPages)].map((_, i) => i + 1);
+    }
+    const siblingCount = 1;
+    const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
+    const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages);
+    const showLeftEllipsis = leftSiblingIndex > 2;
+    const showRightEllipsis = rightSiblingIndex < totalPages - 1;
+    const pages = [];
+    pages.push(1);
+    if (showLeftEllipsis) {
+      pages.push("left-ellipsis");
+    }
+    for (let i = leftSiblingIndex; i <= rightSiblingIndex; i++) {
+      if (i !== 1 && i !== totalPages) {
+        pages.push(i);
+      }
+    }
+    if (showRightEllipsis) {
+      pages.push("right-ellipsis");
+    }
+    if (totalPages !== 1) {
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+
+  // Change page TODO : backend
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const toggleModalVisibility = () => {
+    setOpenModal((prev) => !prev);
+  }
+
   return (
     <div>
+      {openModal && <CreateUserModal onClose={toggleModalVisibility}/>}
+      
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Utilisateurs</h1>
+          <h1 className="text-2xl font-bold text-[#191919]">Utilisateurs</h1>
           <p className="text-gray-500">Lorem ipsum lorem lorem</p>
         </div>
       </div>
 
       {/* 1st row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 ">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {/* Card 1 : total users */}
         <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 lg:p-8 shadow-sm flex flex-col">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase mb-1">Inscrits</h2>
-          <p className="text-gray-500 text-sm">Nombre d'utilisateurs total</p>
+          <h2 className="text-sm font-semibold text-[#5D5D5D] uppercase mb-1">Inscrits</h2>
+          <p className="text-[#191919] font-bold text-xl">Nombre d'utilisateurs total</p>
           <div className="flex items-center">
             <FaUsers className="text-5xl text-blue-500 mt-4 mr-4 w-[80px] h-[80px]" />
-            <p className="text-4xl font-bold text-gray-800 mt-2">{users.length.toLocaleString()}</p>
+            <p className="text-5xl font-bold text-gray-800 mt-3">{users.length.toLocaleString()}</p>
           </div>
         </div>
+
         {/* Card 2 : role request */}
-        <div className="relative block overflow-hidden rounded-lg border border-gray-100 p-4 sm:p-6 lg:p-8 bg-white shadow-sm ">
-          <span
-            className="absolute inset-x-0 bottom-0 h-2 bg-gradient-to-r from-green-300 via-blue-500 to-purple-600"
-          ></span>
-
-          <div className="sm:flex sm:justify-between sm:gap-4">
-            <div className="flex items-center">
-              {/* TODO Image or placeholder*/}
-              <div className=" mr-4 size-16 rounded-lg bg-blue-200 text-gray-700 flex items-center justify-center">
-                <FaUser className="text-white w-10 h-10" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 sm:text-xl">
-                  Demande de rôle : Décisionnaire
-                </h3>
-                <p className="mt-1 text-xs font-medium text-gray-600">John Doe - 20 Mars 2025</p>
-              </div>
-            </div>
-
-            <div className="hidden sm:block sm:shrink-0">
-
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <p className="text-sm text-pretty text-gray-500">
-              Lorem ipsum dolor sit, amet consectetur adipisicing elit. At velit illum provident a, ipsa
-              maiores deleniti consectetur nobis et eaque.
-            </p>
-          </div>
-          <div className="flex items-center mt-4">
-            <button className="text-sm font-medium text-blue-600 hover:underline mr-4">Accepter</button>
-            <button className="text-sm font-medium text-red-600 hover:underline">Refuser</button>
-          </div>
-        </div>
+        <RequestCard className="md:col-span-2" />
       </div>
 
       {/* Users list */}
       <div>
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-gray-800 ">
+            <h2 className="text-lg font-bold text-[#191919] ">
               Utilisateurs Inscrits
             </h2>
             <p className="text-gray-500 text-sm mb-3">
               Voici la liste des utilisateurs inscrits sur la plateforme.
             </p>
           </div>
-            {/* Searchbar */}
-            <div className="relative mt-4 md:mt-0">
+          {/* Searchbar */}
+          <div className="flex items-center space-x-4">
+            <div className="relative md:mt-0">
               <input
                 type="text"
                 placeholder="Rechercher un utilisateur..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="border border-gray-300 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none bg-white placeholder-[#9D9D9D] text-[#5D5D5D]"
+                className="border border-gray-200 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none bg-white placeholder-[#9D9D9D] text-[#5D5D5D]"
               />
             <svg
-              className="absolute left-3 top-2 w-5 h-5 text-[#5D5D5D]"
+              className="absolute left-3 top-2 w-5 h-5 text-[#9D9D9D]"
               fill="none"
               stroke="currentColor"
               strokeWidth={2}
@@ -161,6 +188,15 @@ export default function UsersPage() {
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
+          </div>
+            <div className="group">
+              <button 
+                className="bg-white py-2 px-2 flex items-center justify-center border border-gray-200 rounded-lg text-white hover:bg-blue-700 transition-colors duration-500"
+                onClick={toggleModalVisibility}  
+              >
+                <IoPersonAddSharp className="w-5 h-5 text-blue-600 group-hover:text-white " />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -182,7 +218,7 @@ export default function UsersPage() {
               <th onClick={() => handleSort("statut")} className="cursor-pointer px-4 py-2 text-left text-sm font-semibold text-gray-600">
                 Statut {sortConfig.key === "statut" && (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
-              <th onClick={() => handleSort("inscritLe")} className="cursor-pointer px-4 py-2 text-left text-sm font-semibold text-gray-600">
+              <th onClick={() => handleSort("inscritLe")} className="hidden md:table-cell cursor-pointer px-4 py-2 text-left text-sm font-semibold text-gray-600">
                 Inscrit le {sortConfig.key === "inscritLe" && (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Rôle</th>
@@ -190,8 +226,8 @@ export default function UsersPage() {
             </tr>
           </thead>
           <tbody>
-            {sortedUsers.length > 0 ? (
-              sortedUsers.map((user) => (
+            {paginatedUsers.length > 0  ? (
+              paginatedUsers.map((user) => (
                 <tr key={user.id} className="border-b last:border-0">
                   <td className="px-4 py-2 text-sm text-gray-700">{user.id}</td>
                   <td className="px-4 py-2 text-sm text-gray-700">{user.nom}</td>
@@ -203,7 +239,7 @@ export default function UsersPage() {
                       <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-semibold">Inactif</span>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-sm text-gray-700">{user.inscritLe}</td>
+                  <td className="hidden md:table-cell px-4 py-2 text-sm text-gray-700">{user.inscritLe}</td>
                   <td className="px-4 py-2 relative">
                     <button
                       onClick={() => toggleDropdown(user.id)}
@@ -246,6 +282,36 @@ export default function UsersPage() {
             )}
           </tbody>
         </table>
+        
+        {/* User Pagination */}
+        <div className="flex justify-between items-center mt-2">
+          <p className="text-sm text-gray-500">
+            Affichage de {(currentPage - 1) * itemsPerPage + 1} à{" "}
+            {Math.min(currentPage * itemsPerPage, sortedUsers.length)} sur {sortedUsers.length} utilisateurs
+          </p>
+          <div className="flex items-center space-x-1">
+            {getPaginationRange().map((item, index) => {
+              if (item === "left-ellipsis" || item === "right-ellipsis") {
+                return (
+                  <span key={index} className="px-2 py-1 text-sm text-gray-500">
+                    ...
+                  </span>
+                );
+              }
+              return (
+                <button
+                  key={index}
+                  onClick={() => handlePageChange(item)}
+                  className={`px-3 py-1 text-sm rounded ${
+                    currentPage === item ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
+                >
+                  {item}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

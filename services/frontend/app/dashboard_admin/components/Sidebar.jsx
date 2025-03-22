@@ -5,20 +5,21 @@ import { clsx } from "clsx";
 
 import { FaHouse, FaUser } from "react-icons/fa6";
 import { BsDatabaseCheck } from "react-icons/bs";
-import { MdOutlineMonitorHeart } from "react-icons/md";
-import { TbApi } from "react-icons/tb";
-import { FiEye } from "react-icons/fi";
+import { MdOutlineMonitorHeart, MdOutlineSettingsInputAntenna, MdHome } from "react-icons/md";
+import { LuChartNoAxesCombined } from "react-icons/lu";
 import { IoMdSettings } from "react-icons/io";
 import { RiLogoutBoxLine } from "react-icons/ri";
+import { IoWarningOutline } from "react-icons/io5";
 
 // Menus
 const mainMenu = [
-  { href: "/dashboard_admin", label: "Accueil", Icon: FaHouse },
+  { href: "/dashboard_admin", label: "Accueil", Icon: MdHome },
   { href: "/dashboard_admin/users", label: "Utilisateurs", Icon: FaUser },
   { href: "/dashboard_admin/database", label: "Base de données", Icon: BsDatabaseCheck },
   { href: "/dashboard_admin/system", label: "Système", Icon: MdOutlineMonitorHeart },
-  { href: "/dashboard_admin/apis", label: "APIs", Icon: TbApi },
-  { href: "/dashboard_admin/visitors", label: "Visiteurs", Icon: FiEye },
+  { href: "/dashboard_admin/apis", label: "APIs", Icon: MdOutlineSettingsInputAntenna },
+  { href: "/dashboard_admin/visitors", label: "Visiteurs", Icon: LuChartNoAxesCombined },
+  { href: "/dashboard_admin/alerts", label: "Alertes", Icon: IoWarningOutline },
 ];
 
 const preferencesMenu = [

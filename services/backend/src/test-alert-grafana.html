@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Test Socket.IO</title>
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+  </head>
+  <body>
+    <h1>Test Socket.IO</h1>
+    <div id="alerts"></div>
+    <script>
+      const socket = io('http://localhost:5000');
+      
+      socket.on('connect', () => {
+        console.log('Connecté avec Socket.IO, id:', socket.id);
+      });
+      
+      socket.on('alert', (data) => {
+        console.log('Alerte reçue:', data);
+        const alertsDiv = document.getElementById('alerts');
+        const alertElem = document.createElement('div');
+        alertElem.textContent = JSON.stringify(data);
+        alertsDiv.appendChild(alertElem);
+      });
+
+      socket.on('disconnect', () => {
+        console.log('Déconnecté de Socket.IO');
+      });
+    </script>
+  </body>
+</html>

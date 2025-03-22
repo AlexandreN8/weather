@@ -27,7 +27,7 @@ export default function Navbar({ onToggleSidebar, isOpen }) {
             className="w-full border bg-[#F1F5FB] rounded-full py-2 px-4 pl-10 focus:outline-none placeholder-[#9D9D9D] text-[#5D5D5D] text-sm"
           />
           <svg
-            className="absolute left-3 top-1.5 w-6 h-6 text-[#5D5D5D]"
+            className="absolute left-3 top-1.5 w-6 h-6 text-[#9D9D9D]"
             fill="none"
             stroke="currentColor"
             strokeWidth={2}
@@ -40,9 +40,9 @@ export default function Navbar({ onToggleSidebar, isOpen }) {
       </div>
 
       {/* Notifications */}
-      <div className="ml-4 flex items-center space-x-3">
-        <div className="w-10 h-10 bg-[#F1F5FB] rounded-full flex items-center justify-center text-gray-600">
-          <FaRegBell className="text-[25px] text-[#5D5D5D]" />
+      <div className="ml-4 flex items-center space-x-3 cursor-pointer group">
+        <div className="w-10 h-10 bg-[#F1F5FB] rounded-full flex items-center justify-center text-gray-600 group-hover:bg-[#E5E5E5] transition-all duration-300">
+          <FaRegBell className="text-[25px] text-[#5D5D5D] group-hover:text-black" />
         </div>
       </div>
 

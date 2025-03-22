@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 
 //console.log('process.env.MONGO_URI:', process.env.MONGO_URI);
 
-const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/maBaseDeDonnees';
+const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/weatherDB';
 
 //console.log('Tentative de connexion à MongoDB avec URI :', mongoURI);
 

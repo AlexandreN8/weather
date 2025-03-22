@@ -2,21 +2,25 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const http = require('http'); // Pour créer un serveur HTTP
-const socketIo = require('socket.io'); // Pour les websockets
+
 const userRoutes = require('./routes/userRoutes');
 const redisRoutes = require('./routes/redisRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const accueilRoutes = require('./routes/accueilRoutes');
+const alertRoutes = require('./routes/alertRoutes');
+const activeAlertsRoutes = require('./routes/activeAlertSystem');
+const archiveAlertRoutes = require('./routes/archiveAlertSystem');
+const archivedAlertsRoutes = require('./routes/archivedAlertsSystem');
+
 const redisSubscriber = require('./config/redisPubSub');
 const redisClient = require('./config/redis');
+const { initSocket, getIo } = require('./config/socket');
 
 // Importer la connexion à MongoDB
 require('./config/mongo');
 
 // Importer la route de test MongoDB
 const testMongoRoute = require('./routes/testMongo');
-
-
 
 // Création de l'application Express
 const app = express();
@@ -38,16 +42,16 @@ app.use('/api/accueil', accueilRoutes);
 
 app.use('/api/test-mongo', testMongoRoute);
 
+app.use('/api/alert-webhook', alertRoutes); // Route grafana alertes
+app.use('/api/alerts/archive', archiveAlertRoutes); // Archiver une alerte
+app.use('/api/alerts/archived', archivedAlertsRoutes); // Récupérer les alertes archivées
+app.use('/api/alerts', activeAlertsRoutes); // Récupérer les alertes actives
+
+
 // Création d'un serveur HTTP
 const server = http.createServer(app);
-
-// Attacher Socket.IO au serveur HTTP
-const io = socketIo(server, {
-  cors: {
-    origin: "*", // Ajuste cela selon les besoins de sécurité (ex: origine du front-end)
-    methods: ["GET", "POST"]
-  }
-});
+initSocket(server);
+const io = getIo(); // Récupérer l'instance de Socket.IO
 
 // Gérer les connexions Socket.IO
 io.on('connection', async (socket) => {
@@ -114,7 +118,7 @@ io.on('connection', async (socket) => {
 
 // Abonnement au canal Redis "data_updates"
 redisSubscriber.subscribe('data_updates', async (message) => {
-  console.log('Message reçu depuis Redis sur "data_updates":', message);
+  // console.log('Message reçu depuis Redis sur "data_updates":', message);
   try {
     // On parse la chaîne JSON reçue, qui doit être déjà structurée
     const formattedData = JSON.parse(message);
@@ -126,7 +130,6 @@ redisSubscriber.subscribe('data_updates', async (message) => {
     io.emit('data_update', message);
   }
 });
-
 
 server.listen(PORT, () => {
   console.log(`Serveur démarré sur le port ${PORT}`);

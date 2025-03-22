@@ -1,0 +1,1427 @@
+apiVersion: 1
+contactPoints:
+    - orgId: 1
+      name: Endpoint backend
+      receivers:
+        - uid: cegjd1yrv48owb
+          type: webhook
+          settings:
+            url: http://backend:5000/api/alert-webhook
+          disableResolveMessage: false
+
+groups:
+    - orgId: 1
+      name: API's rules
+      folder: API's Alerts
+      interval: 1m
+      rules:
+        - uid: fegn0wnj9kc8we
+          title: 'API Observations : request errors'
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: sum(climatological_command_requests_total{status="error"}) by (status)
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          annotations:
+            description: L'API Observations rencontre un taux anormalement élevé d'erreurs. Veuillez investiguez.
+            summary: Taux élevé d'erreurs détecté
+          labels:
+            category: api
+            severity: medium
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: aegn10ffxoidce
+          title: 'API Observations : quotas dépassé'
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: sum(climatological_command_requests_total{status="quota"}) by (status)
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          annotations:
+            description: L'API Observations rencontre un taux anormalement élevé de quotas dépassé. Veuillez investiguez.
+            summary: 'API Obs : Quotas de requêtes dépassé'
+          labels:
+            category: api
+            severity: medium
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: aegn29gcq69kwb
+          title: 'API Climatologique : request errors'
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: sum(climatological_command_requests_total{status="error"}) by (status)
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          annotations:
+            description: L'API Climatologique rencontre un taux anormalement élevé d'erreurs. Veuillez investiguez.
+            summary: 'API Cli: Taux élevé d''erreurs détecté'
+          labels:
+            category: api
+            severity: medium
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: degn2bv4z6ayoa
+          title: 'API Climatologique : quotas dépassé (copy)'
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: sum(climatological_command_requests_total{status="quota"}) by (status)
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          annotations:
+            description: L'API Climatologique rencontre un taux anormalement élevé de quotas dépassé. Veuillez investiguez.
+            summary: 'API Cli : Quotas de requêtes dépassé'
+          labels:
+            category: api
+            severity: medium
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+
+# 2eme set de rules
+    - orgId: 1
+      name: cAdvisorAlerts
+      folder: cAdvisor Alerts
+      interval: 1m
+      rules:
+        - uid: aegje88hyr9q8a
+          title: Utilisation CPU élevée
+          condition: A
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                disableTextWrap: false
+                editorMode: code
+                expr: sum(rate(container_cpu_usage_seconds_total[5m])) by (id, name) > 0.4
+                fullMetaSearch: false
+                includeNullMetadata: true
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+                useBackend: false
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0.4
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          annotations:
+            description: |-
+                |
+                    {{- if $labels.name }}
+                      Le container {{ $labels.name }} (ID: {{ $labels.id }}) utilise plus de 80% d'un core depuis plus de 5 minutes.
+                    {{- else if $labels.container_label_com_docker_compose_service }}
+                      Le container {{ $labels.container_label_com_docker_compose_service }} (ID: {{ $labels.id }}) utilise plus de 80% d'un core depuis plus de 5 minutes.
+                    {{- else }}
+                      Le container {{ $labels.id }} utilise plus de 80% d'un core depuis plus de 5 minutes.
+                    {{- end }}
+            summary: Utilisation CPU élevée détectée
+          labels:
+            category: docker
+            severity: warning
+            source: cAdvisor
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: begjp1to8vk74c
+          title: Nginx Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_nginx_proxy_manager"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur Nginx est hors service, veuillez le vérifier.
+            summary: Nginx Container Down
+          labels:
+            category: docker
+            container: nginx
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: begjp6euv5ekgd
+          title: Prometheus Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_prometheus"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur Prometheus est hors service, veuillez le vérifier.
+            summary: Prometheus Container Down
+          labels:
+            category: docker
+            container: prometheus
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: degjp9u3dt3i8e
+          title: Kafka-exporter Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_prometheus-kafka-exporter"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur Kafka Exporter est hors service, veuillez le vérifier.
+            summary: Kafka Exporter Container Down
+          labels:
+            category: docker
+            container: kafka-exporter
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: begjpcg19c4qoe
+          title: cAdvisor Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_cadvisor"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur cAdvisor est hors service, veuillez le vérifier.
+            summary: cAdvisor Container Down
+          labels:
+            category: docker
+            container: cAdvisor
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: eegjpgrt3dqtcb
+          title: Kafka-ui Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_kafka-ui"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur Kafka-UI est hors service, veuillez le vérifier.
+            summary: Kafka-UI Container Down
+          labels:
+            category: docker
+            container: kafka-ui
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: eegjpkjcv0sn4d
+          title: Node Exporter Container
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_prometheus-node-exporter"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur Node Exporter est hors service, veuillez le vérifier.
+            summary: Node Exporter Container Down
+          labels:
+            category: docker
+            container: node-exporter
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: fegjpn79mo35sb
+          title: Postgres Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_postgres"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur Postgres est hors service, veuillez le vérifier.
+            summary: Postgres Container Down
+          labels:
+            category: docker
+            container: postgres
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: cegjpqnrfzhtsf
+          title: Mongo Exporter Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_prometheus-mongodb-exporter"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur Mongo Exporter est hors service, veuillez le vérifier.
+            summary: Mongo Exporter Container Down
+          labels:
+            category: docker
+            container: mongo-exporter
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: fegjpu9gw6bk0f
+          title: Kafka Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_kafka"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur Kafka est hors service, veuillez le vérifier.
+            summary: Kafka Container Down
+          labels:
+            category: docker
+            container: kafka
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: cegjpxyhl0ni8c
+          title: Zookeeper Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_zookeeper"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur Zookeeper est hors service, veuillez le vérifier.
+            summary: Zookeeper Container Down
+          labels:
+            category: docker
+            container: zookeeper
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: begjq0lpioa9sb
+          title: Redis Exporter Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_prometheus-redis-exporter"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur Redis Exporter est hors service, veuillez le vérifier.
+            summary: Redis Exporter Container Down
+          labels:
+            category: docker
+            container: redis-exporter
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: eegjq31jkn01sc
+          title: Redis Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_redis"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur Redis est hors service, veuillez le vérifier.
+            summary: Redis Container Down
+          labels:
+            category: docker
+            container: redis
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: cegjq63fvbfuoc
+          title: API Observations Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_api_observations_producer"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur API Observations est hors service, veuillez le vérifier.
+            summary: API Observations Container Down
+          labels:
+            category: docker
+            container: api-observations
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: degjq95qdx2iob
+          title: Frontend Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_frontend"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur Frontend est hors service, veuillez le vérifier.
+            summary: Frontend Container Down
+          labels:
+            category: docker
+            container: frontend
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: eegjqbvj9sohsd
+          title: Backend Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_backend"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur Backend est hors service, veuillez le vérifier.
+            summary: Backend Container Down
+          labels:
+            category: docker
+            container: backend
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: fegjqe5thdudce
+          title: Redis Consumer Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_redis_consumer"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur Redis Consumer est hors service, veuillez le vérifier.
+            summary: Redis Consumer Container Down
+          labels:
+            category: docker
+            container: redis-consumer
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: fegjqgr3fdwcgb
+          title: API Vigilance Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_api_vigilance_producer"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur API Vigilance est hors service, veuillez le vérifier.
+            summary: API Vigilance Container Down
+          labels:
+            category: docker
+            container: api-vigilance
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: aegjqjjuig3k0d
+          title: ' Mongo Consumer Container Down'
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_mongo_consumer"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur Mongo Consumer est hors service, veuillez le vérifier.
+            summary: Mongo Consumer Container Down
+          labels:
+            category: docker
+            container: mongo-consumer
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: cegjqlyeia7swf
+          title: 'MongoDB Container Down '
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_mongodb"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur MongoDB est hors service, veuillez le vérifier.
+            summary: MongoDB Container Down
+          labels:
+            category: docker
+            container: mongoDB
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
+        - uid: cegjqojpf8um8c
+          title: API Climatologique Container Down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: bee8fzve0esjkc
+              model:
+                editorMode: code
+                expr: absent(max_over_time(container_cpu_usage_seconds_total{name="ter_api_climatologique_producer"}[1m]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          annotations:
+            description: Le conteneur API Climatologique est hors service, veuillez le vérifier.
+            summary: API Climatologique Container Down
+          labels:
+            category: docker
+            container: api-clima
+            severity: critical
+            status: down
+          isPaused: false
+          notification_settings:
+            receiver: Endpoint backend
