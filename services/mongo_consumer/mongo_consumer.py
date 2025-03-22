@@ -1,3 +1,5 @@
+#Relie kafka et mongoDB pour ingérer et stocker des données en temps réel.
+
 from kafka import KafkaConsumer
 from pymongo import MongoClient
 import time 
