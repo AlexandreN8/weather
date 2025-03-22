@@ -12,5 +12,8 @@ RUN mkdir -p /app/logs
 # Copy the application files
 COPY . .
 
+# Ajouter PYTHONPATH
+ENV PYTHONPATH=/app
+
 # Set the default command
 CMD ["python", "producer.py"]

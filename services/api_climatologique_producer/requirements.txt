@@ -3,4 +3,6 @@ pyyaml
 httpx
 apscheduler
 pytz
+pytest
+pytest-asyncio
 prometheus_client
