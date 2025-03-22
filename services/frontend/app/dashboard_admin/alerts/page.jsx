@@ -60,15 +60,18 @@ export default function UsersPage() {
     setAlerts((prev) => {
       const index = prev.findIndex((alert) => alert.key === newAlert.key);
       if (index !== -1) {
+        // Replace the alert if it already exists
         const updated = [...prev];
         updated[index] = newAlert;
         return updated;
+      } else {
+        // Inc counter for the category
+        setAlertCount((prevCount) => {
+          const cat = newAlert.category || "system";
+          return { ...prevCount, [cat]: (prevCount[cat] || 0) + 1 };
+        });
+        return [...prev, newAlert];
       }
-      return [...prev, newAlert];
-    });
-    setAlertCount((prev) => {
-      const cat = newAlert.category || "system";
-      return { ...prev, [cat]: (prev[cat] || 0) + 1 };
     });
   };
 
