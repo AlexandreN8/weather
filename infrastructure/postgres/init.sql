@@ -2,8 +2,10 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
-    username VARCHAR(50) UNIQUE NOT NULL,
     password TEXT NOT NULL,
+    nom VARCHAR(50) NOT NULL,
+    prenom VARCHAR(50) NOT NULL,
+    status BOOLEAN NOT NULL DEFAULT true,
     role VARCHAR(50) NOT NULL DEFAULT 'user',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -11,12 +13,13 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Insertion d'un compte admin avec mot de passe haché
 -- Le hash ci-dessous correspond à "motdepasseadmin" généré avec bcrypt et 10 salt rounds
-INSERT INTO users (email, username, password, role)
+INSERT INTO users (email, password, role, nom, prenom)
 VALUES (
     'admin@example.com',
-    'admin',
     '$2b$10$i3PRLsVQ7TY9J1xguNjdXutP.2Dcv2k1aK.fF5KooJKMhttk2f3CO',
-    'admin'
+    'admin',
+    'Admin',
+    'User'
 );
 
 -- Création de la table role_request pour gérer les demandes de changement de rôle
@@ -31,5 +34,5 @@ CREATE TABLE IF NOT EXISTS role_request (
       FOREIGN KEY (id_user)
       REFERENCES users(id)
       ON DELETE CASCADE,
-    CONSTRAINT status_valid CHECK (status IN ('pending', 'accepté', 'refusé'))
+    CONSTRAINT status_valid CHECK (status IN ('pending', 'accepted', 'refused'))
 );

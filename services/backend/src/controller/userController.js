@@ -1,22 +1,22 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { createUser, findUser, findUserByUsername } = require('../model/userModel');
+const { createUser, findUser } = require('../model/userModel');
 const { sendConfirmationEmail } = require('../config/mailer');
 
 // fonction qui permet d'enregistrer un nouvel utilisateur
 async function register(req, res) {
-  const { email, username, password } = req.body;
+  const { email, nom, prenom, password } = req.body;
   
   // Vérifier que les champs requis sont fournis
-  if (!email || !username || !password) {
-    return res.status(400).json({ error: "Email, username et password sont requis." });
+  if (!email || !nom || !prenom || !password) {
+    return res.status(400).json({ error: "Email, nom, prenom et password sont requis." });
   }
   
   try {
-    // Vérifier si un utilisateur existe déjà (par email ou username)
-    const existingUser = await findUser(email, username);
+    // Vérifier si un utilisateur existe déjà (par email)
+    const existingUser = await findUser(email);
     if (existingUser) {
-      return res.status(400).json({ error: "Un utilisateur avec cet email ou username existe déjà." });
+      return res.status(400).json({ error: "Un utilisateur avec cet email existe déjà." });
     }
     
     // Hacher le mot de passe
@@ -24,10 +24,10 @@ async function register(req, res) {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     
     // Créer l'utilisateur dans la base de données
-    const newUser = await createUser(email, username, hashedPassword);
+    const newUser = await createUser(email, nom, prenom, hashedPassword);
 
     // Envoyer l'e-mail de confirmation ici
-    await sendConfirmationEmail(email, username);
+    await sendConfirmationEmail(email, prenom);
     
     // On ne retourne pas le mot de passe
     delete newUser.password;
@@ -40,16 +40,16 @@ async function register(req, res) {
 
 // fonction qui permet de vérifier la connexion d'un utilisateur
 async function login(req, res) {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
   
   // Vérifier que les champs sont fournis
-  if (!username || !password) {
-    return res.status(400).json({ error: "Le nom d'utilisateur et le mot de passe sont requis." });
+  if (!email || !password) {
+    return res.status(400).json({ error: "L'email et le mot de passe sont requis." });
   }
   
   try {
-    // Recherche l'utilisateur par son nom d'utilisateur
-    const user = await findUserByUsername(username);
+    // Recherche l'utilisateur par son email
+    const user = await findUser(email);
     
     // Si l'utilisateur n'existe pas
     if (!user) {
@@ -62,9 +62,9 @@ async function login(req, res) {
       return res.status(401).json({ error: "Identifiants invalides." });
     }
     
-    // Générer un token JWT (assurez-vous d'avoir défini JWT_SECRET dans vos variables d'environnement)
+    // Générer un token JWT
     const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role },
+      { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );

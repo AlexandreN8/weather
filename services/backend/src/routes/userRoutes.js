@@ -10,11 +10,12 @@ router.post('/register', [
     check('email')
       .isEmail()
       .withMessage("Veuillez fournir un email valide."),
-    check('username')
-      .isLength({ min: 3, max: 20 })
-      .withMessage("Le nom d'utilisateur doit comporter entre 3 et 20 caractères.")
-      .isAlphanumeric()
-      .withMessage("Le nom d'utilisateur ne doit contenir que des lettres et des chiffres."),
+      check('nom')
+      .notEmpty()
+      .withMessage("Le nom est requis."),
+    check('prenom')
+      .notEmpty()
+      .withMessage("Le prénom est requis."),
     check('password')
       .matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/)
       .withMessage("Le mot de passe doit contenir au moins 8 caractères, dont une majuscule, une minuscule et un chiffre.")
