@@ -156,7 +156,7 @@ def check_request_rate(request_times=request_times):
     # Si on dépasse la limite de 50 requêtes dans la fenêtre d'une minute, lever l'exception
     if len(request_times) > 50:
         logger.error(f"Limite dépassée ! Nombre de requêtes : {len(request_times)}")
-        raise Exception("Trop de requêtes envoyées en moins d'une minute")
+        # raise Exception("Trop de requêtes envoyées en moins d'une minute")
 
 #Avec les fonction asynchrone il est utile d'utiliser await pour avoir directement les résultats et pas des coroutines qui sont des fonctions a exécuté.
 async def fetch_station_data(station_id, retries=3):

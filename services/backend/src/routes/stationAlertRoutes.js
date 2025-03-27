@@ -2,45 +2,46 @@
 const express = require('express');
 const Station = require('../model/stationModel');
 const Alert = require('../model/alertModel');
+const StationHistory = require('../model/stationHistoryModel');
 
 const router = express.Router();
 
-// route pour récupérer les stations sur 24h
-router.get('/date', async (req, res) => {
+// route pour récupérer lh'istorique d'une station sur 24h
+router.get('/history/24h/:stationId', async (req, res) => {
   try {
-    const now = new Date();
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const stations = await Station.find({
-      reference_time: { $gte: twentyFourHoursAgo, $lte: now }
-    });
-    if (!stations || stations.length === 0) {
-      return res.status(404).json({ error: 'Aucune station trouvée sur les 24 dernières heures' });
+    const { stationId } = req.params;
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const history = await StationHistory.find({
+      station_id: stationId,
+      reference_time: { $gte: twentyFourHoursAgo }
+    }).sort({ reference_time: 1 });
+    if (!history || history.length === 0) {
+      return res.status(404).json({ error: 'Aucune donnée historique trouvée pour ces 24 heures' });
     }
-    res.json(stations);
+    res.json(history);
   } catch (error) {
-    console.error('Erreur lors de la récupération des stations sur 24h:', error);
-    res.status(500).json({ error: 'Erreur serveur lors de la récupération des stations' });
+    console.error("Erreur lors de la récupération de l'historique sur 24h:", error);
+    res.status(500).json({ error: "Erreur serveur lors de la récupération de l'historique" });
   }
 });
 
-// route pour récupérer les stations sur une journée donnée (format YYYY-MM-DD)
-router.get('/day/:date', async (req, res) => {
+// route pour récupérer l'historique d'une station sur une journée donnée (format YYYY-MM-DD)
+router.get('/history/day/:stationId/:date', async (req, res) => {
   try {
-    const { date } = req.params;
+    const { stationId, date } = req.params;
     const startOfDay = new Date(date + 'T00:00:00Z');
     const endOfDay = new Date(date + 'T23:59:59.999Z');
-
-    const stations = await Station.find({
+    const history = await StationHistory.find({
+      station_id: stationId,
       reference_time: { $gte: startOfDay, $lte: endOfDay }
-    });
-
-    if (!stations || stations.length === 0) {
-      return res.status(404).json({ error: 'Aucune station trouvée pour cette date' });
+    }).sort({ reference_time: 1 });
+    if (!history || history.length === 0) {
+      return res.status(404).json({ error: 'Aucune donnée historique trouvée pour cette date' });
     }
-    res.json(stations);
+    res.json(history);
   } catch (error) {
-    console.error('Erreur lors de la récupération des stations pour le jour donné:', error);
-    res.status(500).json({ error: 'Erreur serveur lors de la récupération des stations' });
+    console.error("Erreur lors de la récupération de l'historique pour la date donnée:", error);
+    res.status(500).json({ error: "Erreur serveur lors de la récupération de l'historique" });
   }
 });
 

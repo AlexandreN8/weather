@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { toast } from "react-toastify";
 import AlertTypeCard from "./components/AlertTypeCard";
 import AlertCard from "./components/AlertCard";
 
@@ -94,10 +94,10 @@ export default function UsersPage() {
         body: JSON.stringify({ key: alertKey }),
       });
       if (res.ok) {
-        console.log("Alerte archivée :", alertKey);
         removeAlert(alertKey, category);
+        toast.success("Alerte archivée avec succès");
       } else {
-        console.error("Erreur lors de l'archivage :", res.statusText);
+        toast.error("Erreur lors de l'archivage de l'alerte");
       }
     } catch (err) {
       console.error("Erreur lors de la requête d'archivage :", err);
@@ -114,7 +114,6 @@ export default function UsersPage() {
           const data = await res.json();
           const mapped = data.map(mapAlert);
           setAlerts(mapped);
-          console.log("Alertes initiales chargées :", mapped);
           const counts = mapped.reduce((acc, alert) => {
             const cat = alert.category || "system";
             acc[cat] = (acc[cat] || 0) + 1;
@@ -143,7 +142,6 @@ export default function UsersPage() {
       console.log("Connecté avec Socket.IO, id:", socket.id);
     });
     socket.on("alert", (data) => {
-      console.log("Alerte reçue via Socket.IO :", data);
       if (data && data.labels) {
         const newAlert = mapAlert(data);
         upsertAlert(newAlert);

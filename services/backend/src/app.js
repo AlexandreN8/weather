@@ -12,6 +12,8 @@ const activeAlertsRoutes = require('./routes/activeAlertSystem');
 const archiveAlertRoutes = require('./routes/archiveAlertSystem');
 const archivedAlertsRoutes = require('./routes/archivedAlertsSystem');
 const stationRoutes = require('./routes/stationAlertRoutes');
+const passwordRoutes = require('./routes/passwordRoutes');
+
 
 const redisSubscriber = require('./config/redisPubSub');
 const redisClient = require('./config/redis');
@@ -19,6 +21,7 @@ const { initSocket, getIo } = require('./config/socket');
 
 const Station = require('./model/stationModel');
 const Alert = require('./model/alertModel');
+const StationHistory = require('./model/stationHistoryModel');
 
 // Importer la connexion à MongoDB
 require('./config/mongo');
@@ -31,7 +34,11 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware pour gérer CORS : ici, on autorise toutes les origines
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3001",
+    credentials: true,
+}));
 // Middleware pour parser le JSON
 app.use(express.json());
 
@@ -52,6 +59,8 @@ app.use('/api/alerts/archived', archivedAlertsRoutes); // Récupérer les alerte
 app.use('/api/alerts', activeAlertsRoutes); // Récupérer les alertes actives
 
 app.use('/api/station', stationRoutes); // Route pour les stations
+
+app.use('/api/users', passwordRoutes); // Route pour la réinitialisation de mot de passe
 
 // Création d'un serveur HTTP
 const server = http.createServer(app);
@@ -158,6 +167,11 @@ async function saveData(key, data) {
         { upsert: true, new: true }
       );
       console.log(`Station ${stationData.station_id} sauvegardée dans MongoDB.`);
+
+      // Enregistrer cette mise à jour dans l'historique stationHistory
+      const historyData = { ...stationData };
+      await StationHistory.create(historyData);
+      console.log(`Historique pour la station ${stationData.station_id} inséré.`);
     } else {
       console.error('Données de station invalides pour la clé:', key);
     }

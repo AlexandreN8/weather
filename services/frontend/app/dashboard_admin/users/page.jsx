@@ -1,45 +1,261 @@
 "use client";
-import { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { FaChevronDown } from "react-icons/fa";
 import { FaUsers } from "react-icons/fa";
 import { IoPersonAddSharp } from "react-icons/io5";
+import { toast } from "react-toastify";
 
 import CreateUserModal from "../components/CreateUserModal";
-import RequestCard from "../components/RequestCard";
+import RequestCardsCarousel from "../components/RequestCardsCarousel";
+import CustomSelect from "../components/CustomSelect";
+import UserRoleChangeModal from "../components/UserRoleChangeModal";
 
 export default function UsersPage() {
+  // State for the users
+  const [users, setUsers] = useState([]);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [roleRequests, setRoleRequests] = useState([]);
+
+  // State for the role modal
+  const [roleChangeModalOpen, setRoleChangeModalOpen] = useState(false);
+  const [selectedUserForRoleChange, setSelectedUserForRoleChange] = useState(null);
+  const [newRoleForUser, setNewRoleForUser] = useState("");
+  const [openDropdown, setOpenDropdown] = useState(null);
+
   const [openModal, setOpenModal] = useState(false);
+
+  // Search
   const [searchTerm, setSearchTerm] = useState("");
-  const [openDropdown, setOpenDropdown] = useState(null); 
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-
-  // TODO : dynamic data
-  const [users, setUsers] = useState([
-    { id: 100, nom: "Doe", prenom: "John", statut: "Actif", inscritLe: "10-Mar-2025", role: "Administrateur" },
-    { id: 200, nom: "Doe", prenom: "Jane", statut: "Inactif", inscritLe: "11-Mar-2025", role: "Utilisateur" },
-    { id: 2001, nom: "Doe", prenom: "Joseph", statut: "Actif", inscritLe: "12-Mar-2025", role: "Décisionnaire" },
-    { id: 2002, nom: "Doe", prenom: "Jade", statut: "Inactif", inscritLe: "13-Mar-2025", role: "Utilisateur" },
-    { id: 3333, nom: "Jos", prenom: "Jon", statut: "Actif", inscritLe: "14-Mar-2025", role: "Administrateur" },
-    { id: 4678, nom: "Jos", prenom: "Jon", statut: "Actif", inscritLe: "14-Mar-2025", role: "Administrateur" },
-    { id: 2, nom: "Jos", prenom: "Jon", statut: "Actif", inscritLe: "14-Mar-2025", role: "Administrateur" },
-    { id: 3, nom: "Jos", prenom: "Jon", statut: "Actif", inscritLe: "14-Mar-2025", role: "Administrateur" },
-  ]);
-
+  
   const roles = ["Administrateur", "Décisionnaire", "Utilisateur"];
+
+  // Format date to be in the form "DD MMM YYYY" 
+  function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    const day = date.getDate();
+    const year = date.getFullYear();
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = months[date.getMonth()];
+    return `${day} ${month} ${year}`;
+  }
 
   const toggleDropdown = (userId) => {
     setOpenDropdown((prev) => (prev === userId ? null : userId));
   };
 
-  // Role selection
-  const selectRole = (userId, newRole) => {
-    setUsers((prevUsers) =>
-      prevUsers.map((user) => (user.id === userId ? { ...user, role: newRole } : user))
+  // Handle role select for the table
+  const handleRoleSelect = (user, newRole) => {
+    if (user.role === newRole) {
+      // no change
+      return;
+    }
+    // open confirm modal
+    setSelectedUserForRoleChange(user);
+    setNewRoleForUser(newRole);
+    setRoleChangeModalOpen(true);
+  };
+
+  // Handle confirm role change for the table
+  const handleConfirmRoleChange = async () => {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const token = localStorage.getItem("authToken");
+  
+    try {
+      const response = await fetch(
+        `${backendUrl}/api/admin/users/${selectedUserForRoleChange.id}/role`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({ role: newRoleForUser }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Erreur lors de la mise à jour du rôle de l'utilisateur.");
+      }
+      const data = await response.json();
+      toast.success("Rôle de l'utilisateur mis à jour avec succès !");
+      // Update the user in the list
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === selectedUserForRoleChange.id
+            ? { ...user, role: newRoleForUser }
+            : user
+        )
+      );
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message);
+    } finally {
+      setRoleChangeModalOpen(false);
+      setSelectedUserForRoleChange(null);
+      setNewRoleForUser("");
+    }
+  };
+
+  // Handle cancel role change for the table
+  const handleCancelRoleChange = () => {
+    setRoleChangeModalOpen(false);
+    setSelectedUserForRoleChange(null);
+    setNewRoleForUser("");
+  };
+
+  // Callback function to update the users list when a new user is created
+  const handleUserCreated = (newUser) => {
+    setUsers((prevUsers) => [newUser, ...prevUsers]); // add user to the list
+    setTotalUsers((prevTotal) => prevTotal + 1); // inc user count
+  };
+
+  // Fetch users from the backend
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        // define the start and end of the range to fetch
+        const start = (currentPage - 1) * itemsPerPage + 1;
+        const end = currentPage * itemsPerPage;
+        
+        // TODO: stored token will be meaningfull when we will have a login page
+        const token = localStorage.getItem("authToken"); 
+        const res = await fetch(`${backendUrl}/api/admin/users?start=${start}&end=${end}`, {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUsers(data.users || []);
+        } else {
+          console.error("Erreur lors de la récupération des utilisateurs :", res.statusText);
+        }
+      } catch (err) {
+        console.error("Erreur lors de la requête de récupération des utilisateurs :", err);
+      }
+    };
+
+    fetchUsers();
+  }, [currentPage]);
+
+  // Search users
+  useEffect(() => {
+    const fetchData = async () => {
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const token = localStorage.getItem("authToken");
+  
+      if (searchTerm.trim() === "") {
+        // Empty search mean we fetch users normally
+        const start = (currentPage - 1) * itemsPerPage + 1;
+        const end = currentPage * itemsPerPage;
+        try {
+          const res = await fetch(`${backendUrl}/api/admin/users?start=${start}&end=${end}`, {
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
+            credentials: "include",
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setUsers(data.users || []);
+          } else {
+            console.error("Erreur lors de la récupération des utilisateurs :", res.statusText);
+          }
+        } catch (err) {
+          console.error("Erreur lors de la requête de récupération des utilisateurs :", err);
+        }
+      } else {
+        setCurrentPage(1);
+        try {
+          const res = await fetch(`${backendUrl}/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
+            credentials: "include",
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setUsers(data.users || []);
+          } else {
+            console.error("Erreur lors de la recherche :", res.statusText);
+          }
+        } catch (err) {
+          console.error("Erreur lors de la requête de recherche :", err);
+        }
+      }
+    };
+  
+    fetchData();
+  }, [searchTerm, currentPage]);
+  
+  // Get the total number of users from the backend
+  useEffect(() => {
+    const fetchUserCount = async () => {
+      try {
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const token = localStorage.getItem("authToken");
+        const res = await fetch(`${backendUrl}/api/admin/users/count`, {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setTotalUsers(data.totalUsers || 0);
+        } else {
+          console.error("Erreur lors de la récupération du nombre total d'utilisateurs :", res.statusText);
+        }
+      } catch (err) {
+        console.error("Erreur lors de la requête du nombre d'utilisateurs :", err);
+      }
+    };
+
+    fetchUserCount();
+  }, []);
+
+  // Fetch all role request
+  useEffect(() => {
+    const fetchRoleRequests = async () => {
+      try {
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const token = localStorage.getItem("authToken");
+        const res = await fetch(`${backendUrl}/api/admin/role-requests/open`, {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setRoleRequests(data.requests || []);
+        } else {
+          console.error("Erreur lors de la récupération des demandes de rôle :", res.statusText);
+        }
+      } catch (err) {
+        console.error("Erreur lors de la requête de récupération des demandes de rôle :", err);
+      }
+    }
+
+    fetchRoleRequests();
+  }, []);
+
+  // Callback to remove a request from the list
+  const removeRequest = (requestId) => {
+    setRoleRequests((prevRequests) =>
+      prevRequests.filter((req) => req.id !== requestId)
     );
-    setOpenDropdown(null);
   };
 
   // Filter through namea and id
@@ -57,11 +273,9 @@ export default function UsersPage() {
       sortableUsers.sort((a, b) => {
         let aValue = a[sortConfig.key];
         let bValue = b[sortConfig.key];
-        // Numbers
         if (typeof aValue === "number" && typeof bValue === "number") {
           return sortConfig.direction === "asc" ? aValue - bValue : bValue - aValue;
         }
-        // Chars
         aValue = aValue.toString().toLowerCase();
         bValue = bValue.toString().toLowerCase();
         if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
@@ -72,7 +286,7 @@ export default function UsersPage() {
     return sortableUsers;
   }, [filteredUsers, sortConfig]);
 
-  // Sort function 
+  // Sort function for the table headers
   const handleSort = (key) => {
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
@@ -82,15 +296,11 @@ export default function UsersPage() {
   };
 
   // Total number of pages based on number of users
-  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
+  const totalPages = Math.ceil(totalUsers / itemsPerPage);
 
-  // Get current page users
-  const paginatedUsers = sortedUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-  
-  // Pagination range
+  const paginatedUsers = sortedUsers; // current page
+
+  // Pagination range 
   const getPaginationRange = () => {
     const totalPageNumbersToShow = 5;
     if (totalPages <= totalPageNumbersToShow) {
@@ -120,24 +330,29 @@ export default function UsersPage() {
     return pages;
   };
 
-  // Change page TODO : backend
+  // Handle pagination change
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
+  // Display the user creation modal
   const toggleModalVisibility = () => {
     setOpenModal((prev) => !prev);
-  }
+  };
 
   return (
     <div>
-      {openModal && <CreateUserModal onClose={toggleModalVisibility}/>}
-      
+      {openModal && (
+        <CreateUserModal 
+          onClose={toggleModalVisibility} 
+          onUserCreated={handleUserCreated} 
+        />
+      )}
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[#191919]">Utilisateurs</h1>
-          <p className="text-gray-500">Lorem ipsum lorem lorem</p>
+          <p className="text-gray-500">Voici la liste des utilisateurs récupérée dynamiquement depuis le back-end.</p>
         </div>
       </div>
 
@@ -146,38 +361,43 @@ export default function UsersPage() {
         {/* Card 1 : total users */}
         <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 lg:p-8 shadow-sm flex flex-col">
           <h2 className="text-sm font-semibold text-[#5D5D5D] uppercase mb-1">Inscrits</h2>
-          <p className="text-[#191919] font-bold text-xl">Nombre d'utilisateurs total</p>
+          <p className="text-[#191919] font-bold text-xl">Nombre total d'utilisateurs</p>
           <div className="flex items-center">
             <FaUsers className="text-5xl text-blue-500 mt-4 mr-4 w-[80px] h-[80px]" />
-            <p className="text-5xl font-bold text-gray-800 mt-3">{users.length.toLocaleString()}</p>
+            <p className="text-5xl font-bold text-gray-800 mt-3">{totalUsers.toLocaleString()}</p>
           </div>
         </div>
 
         {/* Card 2 : role request */}
-        <RequestCard className="md:col-span-2" />
+        <div className="md:col-span-2 ">
+          {roleRequests.length > 0 ? (
+            <RequestCardsCarousel 
+              requests={roleRequests} 
+              removeRequest={removeRequest}
+            />
+          ) : (
+            <div className="p-4 flex items-center justify-center border border-gray-100 font-semibold text-[#5D5D5D] rounded-lg bg-white shadow-sm h-full">
+              <p>Aucune demande de rôle en cours.</p>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Users list */}
-      <div>
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-[#191919] ">
-              Utilisateurs Inscrits
-            </h2>
-            <p className="text-gray-500 text-sm mb-3">
-              Voici la liste des utilisateurs inscrits sur la plateforme.
-            </p>
-          </div>
-          {/* Searchbar */}
-          <div className="flex items-center space-x-4">
-            <div className="relative md:mt-0">
-              <input
-                type="text"
-                placeholder="Rechercher un utilisateur..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="border border-gray-200 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none bg-white placeholder-[#9D9D9D] text-[#5D5D5D]"
-              />
+      {/* Search and actions */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-[#191919]">Utilisateurs Inscrits</h2>
+          <p className="text-gray-500 text-sm mb-3">Liste des utilisateurs récupérée depuis la base de données.</p>
+        </div>
+        <div className="flex items-center space-x-4">
+          <div className="relative md:mt-0">
+            <input
+              type="text"
+              placeholder="Rechercher un utilisateur..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="border border-gray-200 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none bg-white placeholder-[#9D9D9D] text-[#5D5D5D]"
+            />
             <svg
               className="absolute left-3 top-2 w-5 h-5 text-[#9D9D9D]"
               fill="none"
@@ -189,20 +409,19 @@ export default function UsersPage() {
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
           </div>
-            <div className="group">
-              <button 
-                className="bg-white py-2 px-2 flex items-center justify-center border border-gray-200 rounded-lg text-white hover:bg-blue-700 transition-colors duration-500"
-                onClick={toggleModalVisibility}  
-              >
-                <IoPersonAddSharp className="w-5 h-5 text-blue-600 group-hover:text-white " />
-              </button>
-            </div>
+          <div className="group">
+            <button 
+              className="bg-white py-2 px-2 flex items-center justify-center border border-gray-200 rounded-lg text-white hover:bg-blue-700 transition-colors duration-500"
+              onClick={toggleModalVisibility}  
+            >
+              <IoPersonAddSharp className="w-5 h-5 text-blue-600 group-hover:text-white " />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* User Table */}
-      <div className="overflow-x-auto">
+      {/* Users Table */}
+      <div className="overflow-x-auto mt-6">
         <table className="w-full bg-white border border-gray-200 rounded-lg shadow-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
@@ -215,57 +434,38 @@ export default function UsersPage() {
               <th onClick={() => handleSort("prenom")} className="cursor-pointer px-4 py-2 text-left text-sm font-semibold text-gray-600">
                 Prénom {sortConfig.key === "prenom" && (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
-              <th onClick={() => handleSort("statut")} className="cursor-pointer px-4 py-2 text-left text-sm font-semibold text-gray-600">
-                Statut {sortConfig.key === "statut" && (sortConfig.direction === "asc" ? "▲" : "▼")}
+              <th className=" px-4 py-2 text-left text-sm font-semibold text-gray-600">
+                Statut
               </th>
-              <th onClick={() => handleSort("inscritLe")} className="hidden md:table-cell cursor-pointer px-4 py-2 text-left text-sm font-semibold text-gray-600">
-                Inscrit le {sortConfig.key === "inscritLe" && (sortConfig.direction === "asc" ? "▲" : "▼")}
+              <th  className="hidden md:table-cell px-4 py-2 text-left text-sm font-semibold text-gray-600">
+                Inscrit le
               </th>
               <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Rôle</th>
               <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600"></th>
             </tr>
           </thead>
           <tbody>
-            {paginatedUsers.length > 0  ? (
+            {paginatedUsers.length > 0 ? (
               paginatedUsers.map((user) => (
                 <tr key={user.id} className="border-b last:border-0">
                   <td className="px-4 py-2 text-sm text-gray-700">{user.id}</td>
                   <td className="px-4 py-2 text-sm text-gray-700">{user.nom}</td>
                   <td className="px-4 py-2 text-sm text-gray-700">{user.prenom}</td>
                   <td className="px-4 py-2 text-sm">
-                    {user.statut === "Actif" ? (
+                    {user.status ? (
                       <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">Actif</span>
                     ) : (
                       <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-semibold">Inactif</span>
                     )}
                   </td>
-                  <td className="hidden md:table-cell px-4 py-2 text-sm text-gray-700">{user.inscritLe}</td>
-                  <td className="px-4 py-2 relative">
-                    <button
-                      onClick={() => toggleDropdown(user.id)}
-                      className="flex items-center justify-between w-[150px] gap-2 bg-[#F1F5FB] rounded-lg px-2 py-2 text-sm text-gray-700 shadow-sm hover:shadow-md transition-shadow"
-                    >
-                      <span>{user.role}</span>
-                      <FaChevronDown
-                        className={`text-gray-500 transition-transform duration-300 ${
-                          openDropdown === user.id ? "rotate-180" : "rotate-0"
-                        }`}
-                      />
-                    </button>
-                    {openDropdown === user.id && (
-                      <div className="absolute left-0 mt-0 w-48 bg-white border border-gray-200 rounded-lg shadow-md z-10 transition-all duration-300 transform scale-95 opacity-100">
-                        {roles.map((role) => (
-                          <div
-                            key={role}
-                            onClick={() => selectRole(user.id, role)}
-                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer rounded-md transition"
-                          >
-                            {role}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </td>
+                  <td className="hidden md:table-cell px-4 py-2 text-sm text-gray-700">{formatDate(user.created_at)}</td>
+                  <CustomSelect
+                    user={user}
+                    roles={roles}
+                    openDropdown={openDropdown}
+                    toggleDropdown={toggleDropdown}
+                    onRoleSelect={handleRoleSelect}
+                  />
                   <td className="px-4 py-2 text-sm text-gray-700">
                     <button className="text-blue-500 hover:underline">
                       <BsThreeDotsVertical className="text-gray-700" />
@@ -282,12 +482,12 @@ export default function UsersPage() {
             )}
           </tbody>
         </table>
-        
-        {/* User Pagination */}
+
+        {/* Pagination */}
         <div className="flex justify-between items-center mt-2">
           <p className="text-sm text-gray-500">
             Affichage de {(currentPage - 1) * itemsPerPage + 1} à{" "}
-            {Math.min(currentPage * itemsPerPage, sortedUsers.length)} sur {sortedUsers.length} utilisateurs
+            {Math.min(currentPage * itemsPerPage, sortedUsers.length)} sur {totalUsers} utilisateurs
           </p>
           <div className="flex items-center space-x-1">
             {getPaginationRange().map((item, index) => {
@@ -313,6 +513,18 @@ export default function UsersPage() {
           </div>
         </div>
       </div>
+
+      {/* Role change modal */}
+      {roleChangeModalOpen && selectedUserForRoleChange && (
+        <UserRoleChangeModal
+          isOpen={roleChangeModalOpen}
+          onClose={handleCancelRoleChange}
+          onConfirm={handleConfirmRoleChange}
+          userName={`${selectedUserForRoleChange.nom} ${selectedUserForRoleChange.prenom}`}
+          currentRole={selectedUserForRoleChange.role}
+          newRole={newRoleForUser}
+        />
+      )}
     </div>
   );
 }

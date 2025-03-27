@@ -26,6 +26,8 @@ VALUES (
 CREATE TABLE IF NOT EXISTS role_request (
     id SERIAL PRIMARY KEY,
     id_user INTEGER NOT NULL,
+    lname VARCHAR(50) NOT NULL,
+    fname VARCHAR(50) NOT NULL,
     desired_role VARCHAR(50) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
