@@ -49,6 +49,7 @@ jobs:
       
 
   #  Étape 2 : Build et Push des images Docker vers GHCR
+  
   build-and-push:
     needs: lint-and-test
     runs-on: ubuntu-latest
@@ -66,10 +67,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name : Image repo
+        run: echo "IMAGE_REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+        
       - name: Build et Push Backend
       
         run: |
-          IMAGE_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           docker build -t ghcr.io/$IMAGE_REPO/backend:latest services/backend
           docker push ghcr.io/$IMAGE_REPO/backend:latest
 
