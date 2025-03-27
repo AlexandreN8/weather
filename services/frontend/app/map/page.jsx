@@ -1,78 +1,107 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import villes from "../data/villes";
 
 export default function MapPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredStations, setFilteredStations] = useState([]);
+  const [regionFilter, setRegionFilter] = useState("All");
+  const [filteredCities, setFilteredCities] = useState(villes);
   const router = useRouter();
-
-  // Liste des stations météo en Corse
-  const stations = [
-    { name: "Ajaccio", lat: 41.9189, lon: 8.7381 },
-    { name: "Bastia", lat: 42.6974, lon: 9.4509 },
-    { name: "Calvi", lat: 42.5664, lon: 8.7575 },
-    { name: "Corte", lat: 42.2986, lon: 9.1497 },
-  ];
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.L) {
-      if (window.L.DomUtil.get("map")?._leaflet_id != null) { // Vérification si la map existe, si oui on la supprime avant d'en créer une nouvelle
+      if (window.L.DomUtil.get("map")?._leaflet_id != null) {
         window.L.DomUtil.get("map")._leaflet_id = null;
       }
 
-      const map = window.L.map("map").setView([42.1, 9], 8); // Initialisation de la map centrée sur la Corse
-
-      // Ajout d'une couche OpenStreetMap
+      const map = window.L.map("map").setView([46.5, 2.5], 6);
       window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
       }).addTo(map);
 
-      // Ajout des marqueurs des stations
-      stations.forEach((station) => {
-        const marker = window.L.marker([station.lat, station.lon]).addTo(map);
-        marker.bindPopup(`<b>${station.name}</b><br>Station météo`);
+      filteredCities.forEach((city) => {
+        const marker = window.L.marker([city.lat, city.lon]).addTo(map);
+        marker.bindPopup(`<b>${city.name}</b>`);
+        marker.on("click", () => router.push(`/${city.code_postal}`)); 
       });
+
+      return () => map.remove();
     }
+  }, [filteredCities]);
 
-    setFilteredStations(stations);
-  }, []);
-
-  // On filtre les stations en fonction du texte entré dans la barre de recherche
   const handleSearch = (event) => {
     const search = event.target.value.toLowerCase();
     setSearchTerm(search);
-    setFilteredStations(stations.filter(station => station.name.toLowerCase().includes(search)));
+    filterCities(search, regionFilter);
+  };
+
+  const filterCities = (search, region) => {
+    let results = villes;
+    if (region !== "All") {
+      results = results.filter((city) => city.region === region);
+    }
+    results = results.filter((city) =>
+      city.name.toLowerCase().includes(search)
+    );
+    setFilteredCities(results);
+  };
+
+  const handleRegionChange = (region) => {
+    setRegionFilter(region);
+    filterCities(searchTerm, region);
   };
 
   return (
-    <div className="flex w-[70%] mx-auto">
-      <div className="w-1/2 p-6">
-        <h1 className="w-3/4 text-3xl font-bold text-blue-700 ml-auto">Carte des stations météo</h1>
-        <div id="map" className="w-3/4 h-[600px] mt-6 border rounded-lg shadow-md ml-auto"></div>
+    <div className="flex w-[80%] mx-auto">
+      <div className="w-2/3 p-6">
+        <h1 className="text-3xl font-bold text-blue-700 mb-4">Carte des villes</h1>
+        <div id="map" className="w-full h-[600px] border rounded shadow-md"></div>
       </div>
 
-      <div className="w-1/2 p-6 items-start">
-        <h2 className="text-3xl text-orange-600 font-bold mb-6">Liste des stations</h2>
+      <div className="w-1/3 p-6">
+        <h2 className="text-2xl font-bold text-orange-600 mb-4">Liste des villes</h2>
         <input
           type="text"
-          placeholder="Rechercher une station..."
+          placeholder="Rechercher..."
           value={searchTerm}
           onChange={handleSearch}
           className="w-full p-2 text-black border rounded mb-4"
         />
-        <ul>
-          {filteredStations.map((station, index) => (
-            <li key={index}
-                className="p-2 border rounded mb-2 cursor-pointer hover:bg-blue-500"
-                onClick={() => router.push(`/stations/${station.name.toLowerCase()}`)}
+
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => handleRegionChange("All")}
+            className={`px-4 py-2 rounded ${regionFilter === "All" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+          >
+            Toutes
+          </button>
+          <button
+            onClick={() => handleRegionChange("France")}
+            className={`px-4 py-2 rounded ${regionFilter === "France" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+          >
+            France
+          </button>
+          <button
+            onClick={() => handleRegionChange("Corse")}
+            className={`px-4 py-2 rounded ${regionFilter === "Corse" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+          >
+            Corse
+          </button>
+        </div>
+
+        <ul className="max-h-[500px] overflow-y-auto">
+          {filteredCities.map((city, index) => (
+            <li
+              key={index}
+              className="p-2 border rounded mb-2 cursor-pointer hover:bg-blue-500 hover:text-white"
+              onClick={() => router.push(`/${city.code_postal}`)} 
             >
-              {station.name}
+              {city.name} ({city.code_postal})
             </li>
           ))}
         </ul>
       </div>
     </div>
-
   );
 }
