@@ -1,8 +1,9 @@
-// routes/testMongo.js
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
+const StationHistory = require('../model/stationHistoryModel');
 
+// fonction pour voir les différentes collections de MongoDB
 router.get('/', async (req, res) => {
     try {
       console.log('État de la connexion Mongo:', mongoose.connection.readyState);
@@ -34,6 +35,17 @@ router.get('/', async (req, res) => {
       });
     } catch (error) {
       res.status(500).json({ error: "Erreur lors de la récupération des documents", details: error.message });
+    }
+  });
+
+  // fonction pour voir l'historique des stations
+  router.get('/station-histories', async (req, res) => {
+    try {
+      const histories = await StationHistory.find({});
+      res.json(histories);
+    } catch (error) {
+      console.error('Erreur lors de la récupération de stationHistories:', error);
+      res.status(500).json({ error: error.message });
     }
   });
 

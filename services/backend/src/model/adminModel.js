@@ -34,7 +34,7 @@ async function updateUserRole(userId, newRole) {
 // fonction qui permet de récupérer les demandes de rôle en attente
 async function getOpenRoleRequests() {
   const query = `
-    SELECT id, id_user, desired_role, status, created_at, updated_at 
+    SELECT id, id_user, lname, fname, desired_role, status, created_at, updated_at 
     FROM role_request 
     WHERE status = 'pending'
     ORDER BY created_at ASC
@@ -50,7 +50,7 @@ async function updateRoleRequest(requestId, newStatus) {
     UPDATE role_request
     SET status = $1, updated_at = CURRENT_TIMESTAMP
     WHERE id = $2
-    RETURNING id, id_user, desired_role, status, created_at, updated_at
+    RETURNING id, id_user, lname, fname, desired_role, status, created_at, updated_at
   `;
   const result = await pool.query(query, [newStatus, requestId]);
   return result.rows[0]; 
