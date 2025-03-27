@@ -4,7 +4,7 @@ const stationSchema = new mongoose.Schema({
     station_id: { type: String, required: true, unique: true },
     name: String,
     type: String,
-    start_data: Date,
+    start_date: Date,
     let: Number,
     lon: Number,
     geo_id_insee: String,
