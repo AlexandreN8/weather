@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const archivedAlertSchema = new mongoose.Schema({
   key: { type: String, unique: true, required: true },
-  status: { type: String, default: 'archived' },
+  status: { type: String, default: 'archived' }, 
   labels: { type: Object, required: true },
   annotations: { type: Object, required: true },
   startsAt: { type: Date, required: true },

@@ -1,15 +1,15 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { createUser, findUser } = require('../model/userModel');
+const { createUser, findUser, searchUsers } = require('../model/userModel');
 const { sendConfirmationEmail } = require('../config/mailer');
 
 // fonction qui permet d'enregistrer un nouvel utilisateur
 async function register(req, res) {
-  const { email, nom, prenom, password } = req.body;
+  const { email, nom, prenom, password, role } = req.body;
   
   // Vérifier que les champs requis sont fournis
-  if (!email || !nom || !prenom || !password) {
-    return res.status(400).json({ error: "Email, nom, prenom et password sont requis." });
+  if (!email || !nom || !prenom || !password || !role) {
+    return res.status(400).json({ error: "Email, nom, prenom, password et role sont requis." });
   }
   
   try {
@@ -24,7 +24,7 @@ async function register(req, res) {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     
     // Créer l'utilisateur dans la base de données
-    const newUser = await createUser(email, nom, prenom, hashedPassword);
+    const newUser = await createUser(email, nom, prenom, hashedPassword, role);
 
     // Envoyer l'e-mail de confirmation ici
     await sendConfirmationEmail(email, prenom);
@@ -78,4 +78,20 @@ async function login(req, res) {
     return res.status(500).json({ error: "Erreur interne du serveur." });
   }
 }
-module.exports = { register, login };
+
+// Fonction de recherche d'utilisateurs
+async function searchUsersController(req, res) {
+  try {
+    const query = req.query.q;
+    if (!query) {
+      return res.status(400).json({ error: "La requête de recherche est manquante." });
+    }
+    const users = await searchUsers(query);
+    res.json({ users });
+  } catch (err) {
+    console.error("Erreur lors de la recherche des utilisateurs :", err);
+    res.status(500).json({ error: "Erreur interne du serveur." });
+  }
+}
+
+module.exports = { register, login, searchUsersController };
