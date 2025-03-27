@@ -1,5 +1,7 @@
 import "./globals.css";
 import NavbarFooterWrapper from "./components/NavbarFooterWrapper";
+import { ToastContainer } from "react-toastify"; 
+import "react-toastify/dist/ReactToastify.css";
 
 export default function RootLayout({ children }) {
   return (
@@ -20,6 +22,7 @@ export default function RootLayout({ children }) {
             {children}
           </main>
         </NavbarFooterWrapper>
+        <ToastContainer /> 
       </body>
     </html>
   );

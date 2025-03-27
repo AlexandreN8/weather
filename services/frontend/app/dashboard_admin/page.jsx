@@ -5,15 +5,10 @@ import { LuChartNoAxesCombined } from "react-icons/lu";
 import { BsDatabaseCheck } from "react-icons/bs";
 import { MdOutlineMonitorHeart, MdOutlineSettingsInputAntenna } from "react-icons/md";
 import { IoWarningOutline } from "react-icons/io5";
-
 import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
   const router = useRouter();
-
-  function handleClick() {
-    router.push("/dashboard_admin/users");
-  }
 
   return (
     <div className="space-y-4">
@@ -30,37 +25,37 @@ export default function DashboardPage() {
           Icon={FaUser}
           description="Gestion des utilisateurs"
           badgeCount={5}
-          onClick={handleClick}
+          onClick={() => router.push("/dashboard_admin/users")}
         />
         <Card
           title="Visiteurs"
           Icon={LuChartNoAxesCombined}
           description="Monitoring du trafic"
-          onClick={() => alert("Vers Visiteurs")}
+          onClick={() => router.push("/dashboard_admin/visitors")}
         />
         <Card
           title="API's Monitoring"
           Icon={MdOutlineSettingsInputAntenna}
           description="Monitoring des APIs"
-          onClick={() => alert("Vers API's Monitoring")}
+          onClick={() => router.push("/dashboard_admin/apis")}
         />
         <Card
           title="System Monitoring"
           Icon={MdOutlineMonitorHeart}
           description="Contrôles des metrics système"
-          onClick={() => alert("Vers System Monitoring")}
+          onClick={() => router.push("/dashboard_admin/system")}
         />
         <Card
           title="Database Monitoring"
           Icon={BsDatabaseCheck}
           description="Contrôles des metrics DB"
-          onClick={() => alert("Vers Database Monitoring")}
+          onClick={() => router.push("/dashboard_admin/database")}
         />
         <Card
           title="Alertes"
           Icon={IoWarningOutline}
           description="Gestion des alertes et notifications"
-          onClick={() => alert("Vers Alertes")}
+          onClick={() => router.push("/dashboard_admin/alerts")}
         />
       </div>
     </div>
