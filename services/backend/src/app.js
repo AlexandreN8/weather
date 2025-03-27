@@ -11,10 +11,14 @@ const alertRoutes = require('./routes/alertRoutes');
 const activeAlertsRoutes = require('./routes/activeAlertSystem');
 const archiveAlertRoutes = require('./routes/archiveAlertSystem');
 const archivedAlertsRoutes = require('./routes/archivedAlertsSystem');
+const stationRoutes = require('./routes/stationAlertRoutes');
 
 const redisSubscriber = require('./config/redisPubSub');
 const redisClient = require('./config/redis');
 const { initSocket, getIo } = require('./config/socket');
+
+const Station = require('./model/stationModel');
+const Alert = require('./model/alertModel');
 
 // Importer la connexion à MongoDB
 require('./config/mongo');
@@ -51,6 +55,7 @@ app.use('/api/alerts/archive', archiveAlertRoutes); // Archiver une alerte
 app.use('/api/alerts/archived', archivedAlertsRoutes); // Récupérer les alertes archivées
 app.use('/api/alerts', activeAlertsRoutes); // Récupérer les alertes actives
 
+app.use('/api/station', stationRoutes); // Route pour les stations
 
 // Création d'un serveur HTTP
 const server = http.createServer(app);
@@ -101,39 +106,84 @@ io.on('connection', async (socket) => {
       }
     }
     console.log("Données initiales envoyées:", { stations, alerts });
-    // Envoyer un objet contenant à la fois les stations et les alertes
     socket.emit('data_update', { stations, alerts });
   } catch (err) {
     console.error("Erreur lors de la récupération des données initiales:", err);
   }
-  // Envoyer un message de bienvenue après 3 secondes
-  /*
-  setTimeout(() => {
-    socket.emit('data_update', { message: 'Bienvenue sur le serveur en temps réel !' });
-  }, 3000);
-  */
-  // Tu peux définir ici des écouteurs d'événements spécifiques
+  
   socket.on('disconnect', () => {
     console.log('Client déconnecté:', socket.id);
   });
 });
 
-
+// fonction qui stocke les données des stations et alertes dans MongoDB
+async function saveData(key, data) {
+  if (key.startsWith('alert:')) {
+    // Traitement pour les alertes
+    let alertData = data;
+    if (typeof alertData === 'string') {
+      try {
+        alertData = JSON.parse(alertData);
+      } catch (e) {
+        console.error("Erreur lors du parsing de l'alerte:", e);
+        return;
+      }
+    }
+    if (alertData && alertData.alert_key) {
+      await Alert.findOneAndUpdate(
+        { alert_key: alertData.alert_key },
+        alertData,
+        { upsert: true, new: true }
+      );
+      console.log(`Alerte ${alertData.alert_key} sauvegardée dans MongoDB.`);
+    } else {
+      console.error('Données d\'alerte invalides pour la clé:', key);
+    }
+  } else if (key.startsWith('station:')) {
+    // Traitement pour les stations
+    let stationData;
+    if (typeof data === 'object' && !data.station_id) {
+      const values = Object.values(data);
+      if (values.length > 0) {
+        try {
+          stationData = JSON.parse(values[0]);
+        } catch (e) {
+          console.error('Erreur lors du parsing du hash Redis pour la station:', e);
+          stationData = {};
+        }
+      }
+    } else {
+      stationData = data.data || data;
+    }
+    if (stationData && stationData.station_id) {
+      await Station.findOneAndUpdate(
+        { station_id: stationData.station_id },
+        stationData,
+        { upsert: true, new: true }
+      );
+      console.log(`Station ${stationData.station_id} sauvegardée dans MongoDB.`);
+    } else {
+      console.error('Données de station invalides pour la clé:', key);
+    }
+  } else {
+    console.error('Clé non reconnue:', key);
+  }
+}
 
 // Abonnement au canal Redis "data_updates"
 redisSubscriber.subscribe('data_updates', async (message) => {
-  // console.log('Message reçu depuis Redis sur "data_updates":', message);
   try {
-    // On parse la chaîne JSON reçue, qui doit être déjà structurée
-    const formattedData = JSON.parse(message);
-    // Émettre directement l'objet formaté vers le front-end
-    io.emit('data_update', formattedData);
+    const data = JSON.parse(message);
+    const key = data.key || 'station:default';
+    await saveData(key, data);
+    console.log(`Données sauvegardées pour la clé ${key}`);
+    io.emit('data_update', data);
   } catch (e) {
-    console.error("Erreur lors du parsing du message:", e);
-    // En cas d'erreur, on émet le message brut
+    console.error("Erreur lors du parsing ou de la sauvegarde du message :", e);
     io.emit('data_update', message);
   }
 });
+
 
 server.listen(PORT, () => {
   console.log(`Serveur démarré sur le port ${PORT}`);
