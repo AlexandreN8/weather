@@ -1,4 +1,4 @@
-name: CI/CD Pipeline with GitHub Container Registry (GHCR)
+name: CI/CD Pipeline with GitHub Container Registry
 
 on:
   push:
@@ -102,7 +102,7 @@ jobs:
   #         username: ${{ secrets.SERVER_USER }}
   #         key: ${{ secrets.SERVER_SSH_KEY }}
   #         script: |
-  #           cd /path/to/your/project
+  #           cd /path
   #           docker-compose pull
   #           docker-compose up -d
   #           docker system prune -f
