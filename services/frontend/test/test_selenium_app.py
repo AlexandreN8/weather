@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
 
 
 from selenium.webdriver.common.action_chains import ActionChains
@@ -58,28 +59,6 @@ def test_menu () :
         driver.quit()
 
 
-
-# def test_search_bar_not_complete(): 
-#     open_webpage(url_front+ "map/");
- 
-#     # Locate the search bar using name attribute
-#     search_box = driver.find_element(By.TAG_NAME, 'input');
-
-#     time.sleep(3);
-
-#     # Type something in the search box
-#     search_box.send_keys("C")
-    
-#     # check that list is limited to Batia
-#     bastia = driver.find_elements(By.TAG_NAME, 'li');
-#     assert (len(bastia) > 1); 
-
-    
-#     # Close the browser
-#     driver.quit()
-
-
-
 def test_search_bar_not_complete(): 
     open_webpage(url_front+ "map/");
  
@@ -100,48 +79,7 @@ def test_search_bar_not_complete():
     driver.quit()
 
 
-
-def test_search_bar_choose_station():
-    open_webpage(url_front+ "map/");
-    
-    search_wrapper = driver.find_element(By.CLASS_NAME, 'items-start');
- 
-    # Locate the search bar using name attribute
-    search_box = search_wrapper.find_element(By.XPATH, ".//input[@type='text']"); #shitty element finder
-
-    time.sleep(4);
-
-    # Type something in the search box
-    search_box.send_keys("bastia")
-    
-    # check that list is limited to Batia
-    bastia = search_wrapper.find_elements(By.XPATH, ".//li")
-    assert (len(bastia) == 1); 
-
-    time.sleep(4)    
-
-    # test affichage
-    bastia[0].click();
-    
-    # Wait for the new page to load (for example, wait for an element that is unique to the new page)
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "tempChartContainer")))
-    
-    # Get the updated current URL after the page has loaded
-    current_url = driver.current_url
-    
-    # Verify that the URL matches the expected one
-    expected_url = url_front + "stations/bastia"
-    assert current_url == expected_url, f"Expected URL {expected_url}, but got {current_url}"
-
-    time.sleep(4);
-    
-    # Close the browser
-    driver.quit()
-
-
-
-
-def test_searchbar_wrong_input () :
+def test_search_bar_wrong_input () :
     
     open_webpage(url_front+ "map/");
  
@@ -163,12 +101,88 @@ def test_searchbar_wrong_input () :
     driver.quit()
 
 
+def test_search_bar_choose_station():
+    open_webpage(url_front+ "map/");
+    
+    map = driver.find_element(By.ID, 'map');
+    
+    try :    
+        # Locate the search bar using name attribute
+        search_box = driver.find_element(By.XPATH, ".//input[@type='text']");
+
+        # Type something in the search box
+        search_box.send_keys("bastia")
+
+        # check that list is limited to Bastia
+        bastia = driver.find_elements(By.XPATH, ".//li")
+        assert (len(bastia) == 1); 
+    
+        # check station chosen is the only one appearing on the map
+        tooltip = map.find_elements(By.CLASS_NAME, "leaflet-marker-icon")
+        assert len(tooltip) == 1
+        assert tooltip[0].is_displayed()
+
+        # click on map element  
+        actions = ActionChains(driver)
+        actions.move_to_element(tooltip[0]).perform()
+        actions.click().perform(); 
+        
+        time.sleep(3)
+
+        # check station graphs work
+        WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, "tempChartContainer")))
+
+    finally : 
+        time.sleep(5);
+        
+        # Close the browser
+        driver.quit()
+
+
+
+ 
+def test_filter_cities():
+    open_webpage(url_front+ "map/");
+    
+    map = driver.find_element(By.ID, 'map');
+    
+    try :    
+        # Locate the France button
+        filter_france = driver.find_element(By.XPATH, "//button[contains(text(), 'France')]");
+        filter_france.click();
+      
+        # check that list has excluded corsica
+        WebDriverWait(driver, 2).until(EC.invisibility_of_element((By.XPATH, ".//li[contains(text(), 'Ajaccio')]")));
+        driver.find_element(By.XPATH, ".//li[contains(text(), 'Paris')]")
+        list_cities = driver.find_elements(By.XPATH, ".//li")
+        assert (len(list_cities) > 1);
+    
+
+        # Locate the Corse button
+        filter_corse = driver.find_element(By.XPATH, "//button[contains(text(), 'Corse')]");
+        filter_corse.click();
+    
+        # check that list is limited to corsica
+        WebDriverWait(driver, 2).until(EC.invisibility_of_element((By.XPATH, ".//li[contains(text(), 'Paris')]")));
+        driver.find_element(By.XPATH, ".//li[contains(text(), 'Bastia')]")
+        list_cities = driver.find_elements(By.XPATH, ".//li")
+        assert len(list_cities) > 1;
+
+    
+    finally : 
+        time.sleep(5);
+        
+        # Close the browser
+        driver.quit()
+
+
+
 # ----------------------- END working well ------------ issues with simultaneous selenium calls
 
 
 # ----------------------- functions left to code ------------ 
 
-# def test_test_graph_Bastia () : 
+# def test_graph_Bastia () : 
 #     open_webpage(url_front + "stations/bastia")
     
 #     # check Bastia Graphs
@@ -192,3 +206,4 @@ def test_searchbar_wrong_input () :
 #         """, graph_temperature_container);
 
 #     driver.quit()
+
