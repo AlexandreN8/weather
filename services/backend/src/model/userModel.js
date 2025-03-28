@@ -29,5 +29,18 @@ async function updateUserPassword(userId, hashedPassword) {
   return result.rows[0];
 }
 
+// par nom, prénom ou email
+async function searchUsers(queryStr) {
+  const searchQuery = `%${queryStr.toLowerCase()}%`;
+  const sql = `
+    SELECT id, nom, prenom, status, created_at, role
+    FROM users
+    WHERE LOWER(nom) LIKE $1 OR LOWER(prenom) LIKE $1 OR LOWER(email) LIKE $1
+    ORDER BY id ASC
+  `;
+  const result = await pool.query(sql, [searchQuery]);
+  return result.rows;
+}
 
-module.exports = { createUser, findUser, updateUserPassword, findUserById };
+
+module.exports = { createUser, findUser, updateUserPassword, findUserById, searchUsers };

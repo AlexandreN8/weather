@@ -288,15 +288,8 @@ groups:
           noDataState: NoData
           execErrState: Error
           annotations:
-            description: |-
-                |
-                    {{- if $labels.name }}
-                      Le container {{ $labels.name }} (ID: {{ $labels.id }}) utilise plus de 80% d'un core depuis plus de 5 minutes.
-                    {{- else if $labels.container_label_com_docker_compose_service }}
-                      Le container {{ $labels.container_label_com_docker_compose_service }} (ID: {{ $labels.id }}) utilise plus de 80% d'un core depuis plus de 5 minutes.
-                    {{- else }}
-                      Le container {{ $labels.id }} utilise plus de 80% d'un core depuis plus de 5 minutes.
-                    {{- end }}
+            description: Le container utilise plus de 80% d'un core depuis plus de 5 minutes.
+
             summary: Utilisation CPU élevée détectée
           labels:
             category: docker
