@@ -81,7 +81,6 @@ export default function RequestCard({ request, className, onRemoveRequest }) {
       }
 
       return (
-        console.log(request),
         <div className={`relative block overflow-hidden rounded-lg border border-gray-100 p-4 sm:p-6 lg:p-8 bg-white shadow-sm ${className}`}>
         <span
           className="absolute inset-x-0 bottom-0 h-2 bg-gradient-to-r from-green-300 via-blue-500 to-purple-600"

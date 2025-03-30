@@ -18,13 +18,13 @@ const mainMenu = [
   { href: "/dashboard_admin/database", label: "Base de données", Icon: BsDatabaseCheck },
   { href: "/dashboard_admin/system", label: "Système", Icon: MdOutlineMonitorHeart },
   { href: "/dashboard_admin/apis", label: "APIs", Icon: MdOutlineSettingsInputAntenna },
-  { href: "/dashboard_admin/visitors", label: "Visiteurs", Icon: LuChartNoAxesCombined },
+  // { href: "/dashboard_admin/visitors", label: "Visiteurs", Icon: LuChartNoAxesCombined },
   { href: "/dashboard_admin/alerts", label: "Alertes", Icon: IoWarningOutline },
 ];
 
 const preferencesMenu = [
-  { href: "/dashboard/settings", label: "Paramètres", Icon: IoMdSettings },
-  { href: "/dashboard/Deconnexion", label: "Déconnexion", Icon: RiLogoutBoxLine },
+  { href: "/dashboard_admin", label: "Paramètres", Icon: IoMdSettings },
+  { href: "/", label: "Retour", Icon: RiLogoutBoxLine },
 ];
 
 export default function Sidebar({ isOpen }) {
