@@ -1,0 +1,16 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Install the necessary dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the application files
+COPY . .
+
+# Expose the FastAPI port
+EXPOSE 8000
+
+# Launch app with uvicorn
+CMD ["uvicorn", "api_export_csv:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "debug"]
