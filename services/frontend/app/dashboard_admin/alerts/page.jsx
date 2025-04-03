@@ -28,7 +28,7 @@ const initialAlertTypes = [
   { key: "docker", label: "Alertes Docker", icon: alertTypeIcon.docker, backgroundColor: "bg-[#7da6cf]" },
 ];
 
-export default function UsersPage() {
+export default function AlertPage() {
   const [alerts, setAlerts] = useState([]); // Store alerts in state
   // Count of alerts by category
   const [alertCount, setAlertCount] = useState({

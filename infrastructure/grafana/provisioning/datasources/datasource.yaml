@@ -8,3 +8,9 @@ datasources:
     url: http://prometheus:9090
     isDefault: true
     overwrite: true
+
+  - name: Grafana Pyroscope
+    type: grafana-pyroscope-datasource
+    url: http://localhost:4040
+    jsonData:
+      minStep: '15s'
