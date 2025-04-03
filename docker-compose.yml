@@ -371,6 +371,26 @@ services:
     privileged: true
     networks:
       - pipeline-net
+  #--------------------------------------------------------
+  # AI
+  #--------------------------------------------------------
+  api-export-csv:
+    build: ./services/api_export   
+    container_name: ter_api_export_csv
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    depends_on:
+      - mongodb
+    networks:
+      - pipeline-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/export-csv"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   #-------------------------------------------------------
   # Client web

@@ -41,7 +41,8 @@ def connect_to_mongo():
 def main():
     client = connect_to_mongo()
     db = client[DB_NAME]
-    collection = db[COLLECTION_NAME]
+    collection = db[COLLECTION_NAME] # Collection principale
+    collection_ai = db["weatherData_AI"] # Collection dédiée IA
 
     logging.info(f"URI de connexion à MongoDB : {MONGO_URI}")
 
@@ -61,9 +62,15 @@ def main():
         data = message.value  # Récupérer les données du message
         logging.info(f"Nouveau message reçu : {data}")
 
-        # Insérer dans MongoDB
+        # Insertion dans la collection principale
         collection.insert_one(data)
-        logging.info("Données insérées dans MongoDB")
+        logging.info("Données insérées dans MongoDB (collection principale)")
+
+        # Vérifier si la station correspond à 20004002 (Ajaccio)
+        if data.get("station_id") == "20004002":
+            collection_ai.insert_one(data)
+            logging.info("Données de la station 20004002 insérées dans la collection dédiée IA")
+
 
 if __name__ == "__main__":
     main()
