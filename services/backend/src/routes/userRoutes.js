@@ -19,9 +19,6 @@ router.post('/register', [
     check('password')
       .matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/)
       .withMessage("Le mot de passe doit contenir au moins 8 caractères, dont une majuscule, une minuscule et un chiffre."),
-    check('role')
-      .notEmpty()
-      .withMessage("Le rôle est requis.")
   ], (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()){

@@ -1,9 +1,9 @@
 const pool = require('../config/db');
 
 // fonction qui créer un utilisateur dans la base de donnée
-async function createUser(email, nom, prenom, hashedPassword, role) {
-  const query = 'INSERT INTO users (email, nom, prenom, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING *';
-  const values = [email, nom, prenom, hashedPassword, role];
+async function createUser(email, nom, prenom, hashedPassword) {
+  const query = 'INSERT INTO users (email, nom, prenom, password) VALUES ($1, $2, $3, $4) RETURNING *';
+  const values = [email, nom, prenom, hashedPassword];
   const result = await pool.query(query, values);
   return result.rows[0];
 }
