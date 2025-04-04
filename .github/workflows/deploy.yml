@@ -30,6 +30,7 @@ jobs:
           pip install -r services/api_climatologique_producer/requirements.txt
           pip install -r services/api_observations_producer/requirements.txt
           pip install -r services/api_vigilance_producer/requirements.txt
+          pip install selenium
 
       - name:  Linter le code
         run: |
@@ -39,6 +40,14 @@ jobs:
       - name :  Installer 
         run :  |
           pip install pytest
+          
+          
+      - name: Ajouter les services au PYTHONPATH
+        run:  |
+            export PYTHONPATH=$PYTHONPATH:$(pwd)/services/api_climatologique_producer
+            export PYTHONPATH=$PYTHONPATH:$(pwd)/services/api_observations_producer
+            pytest services/
+
 
       - name:  Lancer les tests
         run: |
