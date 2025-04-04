@@ -6,15 +6,14 @@ Plateforme de collecte, traitement, export et visualisation de données météor
 
 ## 📚 Sommaire
 
-- [Présentation](#📖-présentation)
-- [Installation rapide](#🚀-installation-rapide)
-- [Architecture du projet](#🧱-architecture-du-projet)
-- [Modules principaux](#🧩-modules-principaux)
-- [CI/CD GitHub Actions](#🔁-cicd-github-actions)
+- [Installation rapide](#-installation-rapide)
+- [Architecture du projet](#-architecture-du-projet)
+- [Modules principaux](#-modules-principaux)
+- [CI/CD GitHub Actions](#-cicd-github-actions)
 
 ---
 
-## 🚀 Installation rapide
+##  Installation rapide
 
 ```bash
 git clone https://github.com/AlexandreN8/Weather
@@ -25,13 +24,13 @@ docker-compose up --build
 
 ```
 
-## 🧱 Architecture du projet
+##  Architecture du projet
 
 Voici l'architecture complète de notre application::
 
 ![Architecture du projet](architecture.png)
 
-📦 Structure :
+ Structure :
 ```
 services/
 ├── api_climatologique_producer/
@@ -46,7 +45,7 @@ services/
 
 ---
 
-## 🧩 Modules principaux
+##  Modules principaux
 
 | Module                     | Description |
 |----------------------------|-------------|
