@@ -47,11 +47,17 @@ jobs:
             export PYTHONPATH=$PYTHONPATH:$(pwd)/services/api_climatologique_producer
             export PYTHONPATH=$PYTHONPATH:$(pwd)/services/api_observations_producer
             pytest services/
-
-
-      - name:  Lancer les tests
+      - name: Copier les fichiers de config pour les tests
         run: |
-          pytest services/
+          cp services/api_climatologique_producer/config/config.yaml services/api_climatologique_producer/
+          cp services/api_observations_producer/config/config.yaml services/api_observations_producer/
+
+
+
+      - name: Lancer les tests #ignore selenium
+        run: |
+              pytest --ignore=services/frontend/test/test_selenium_app.py services/
+
       
 
     
