@@ -1,58 +1,73 @@
-## Prérequis
+# 🌦️ Weather Data Platform
 
-Avant de commencer, assurez-vous d'avoir installé les outils suivants :
-
-1. **Docker** : Installez Docker en suivant les instructions officielles : [Docker Documentation](https://docs.docker.com/get-docker/).
-2. **Docker Compose** : Docker Compose est inclus avec Docker Desktop, ou vous pouvez l'installer séparément si nécessaire. Vérifiez l'installation avec :
-   ```bash
-   docker-compose --version
-   ```
+Plateforme de collecte, traitement, export et visualisation de données météorologiques, basée sur une architecture orientée microservices avec Kafka, FastAPI, Redis, MongoDB, Prometheus & Grafana.
 
 ---
-**Créer un fichier `.env`** :
-   - Copiez le contenu du fichier `envtemplate` et personnalisez-le selon vos besoins spécifiques.
+
+## 📚 Sommaire
+
+- [Présentation](#📖-présentation)
+- [Installation rapide](#🚀-installation-rapide)
+- [Architecture du projet](#🧱-architecture-du-projet)
+- [Modules principaux](#🧩-modules-principaux)
+- [CI/CD GitHub Actions](#🔁-cicd-github-actions)
+
 ---
 
-## Lancer le Projet
+## 🚀 Installation rapide
 
-1. **Vérifiez que les ports nécessaires sont disponibles** :
-   - Assurez-vous que les ports spécifiés dans le fichier `docker-compose.yml` (par exemple : `3000`, `5000`, etc.) ne sont pas utilisés par d'autres applications.
+```bash
+git clone https://github.com/AlexandreN8/Weather
+cd weather
 
-2. **Construire et lancer les services avec Docker Compose** :
-   - Commande pour démarrer le projet :
-     ```bash
-     sudo docker-compose up --build -d
-     ```
-   - Cette commande :
-     - `--build` : Reconstruit les images si nécessaire.
-     - `-d` : Exécute les conteneurs en arrière-plan (mode détaché).
+cp .env_template .env
+docker-compose up --build
 
-3. **Accédez à l'application** :
-   - Ouvrez votre navigateur et accédez à :
-     ```
-     http://localhost
+```
 
-     uikafka : localhost:8080
-     prometheus: localhost:9090
-     grafana: localhost:3000
-## Gestion des Conteneurs et des Ressources
+## 🧱 Architecture du projet
 
-1. **Arrêter les services** :
-   - Pour arrêter les conteneurs en cours d'exécution :
-     ```bash
-     sudo docker-compose down
-     ```
+Voici l'architecture complète de notre application::
 
-2. **Nettoyer les images et volumes Docker** :
-   - Supprimer les images inutilisées :
-     ```bash
-     sudo docker image prune -a
-     ```
-   - Supprimer les volumes inutilisés :
-     ```bash
-     sudo docker volume prune
-     ```
+![Architecture du projet](architecture.png)
 
-3. **Supprimer tous les conteneurs** (si nécessaire) :
-   ```bash
-   sudo docker container prune
+📦 Structure :
+```
+services/
+├── api_climatologique_producer/
+├── api_observations_producer/
+├── api_vigilance_producer/
+├── mongo_consumer/
+├── redis_consumer/
+├── api_export/
+├── backend/
+└── frontend/
+```
+
+---
+
+## 🧩 Modules principaux
+
+| Module                     | Description |
+|----------------------------|-------------|
+| `api_observations_producer` | Produit des données météo temps réel |
+| `api_climatologique_producer` | Gère les données historiques (climatologie) |
+| `api_vigilance_producer`   | Produit des alertes météo |
+| `mongo_consumer`           | Stocke les données dans MongoDB |
+| `redis_consumer`           | Publie les données en temps réel via Redis |
+| `api_export`               | Permet d’exporter les données au format CSV |
+| `backend`                  | API utilisateur, sécurisation, requêtes |
+| `frontend`                 | Interface de visualisation |
+
+---
+
+
+---
+
+##  CI/CD GitHub Actions
+
+Chaque push sur la branche `main` déclenche :
+- Vérification du code (lint + tests)
+- Build des images Docker
+- Push vers GitHub Container Registry (GHCR)
+- Déploiement automatique sur une VM via SSH ( en cours..) 
