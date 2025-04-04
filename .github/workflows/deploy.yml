@@ -40,9 +40,9 @@ jobs:
         run :  |
           pip install pytest
 
-      # - name:  Lancer les tests
-      #   run: |
-      #     pytest services/
+      - name:  Lancer les tests
+        run: |
+          pytest services/
       
 
     
