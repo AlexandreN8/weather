@@ -63,6 +63,7 @@ groups:
           annotations:
             description: L'API Observations rencontre un taux anormalement élevé d'erreurs. Veuillez investiguez.
             summary: Taux élevé d'erreurs détecté
+          for: 0s
           labels:
             category: api
             severity: medium
@@ -117,6 +118,7 @@ groups:
           annotations:
             description: L'API Observations rencontre un taux anormalement élevé de quotas dépassé. Veuillez investiguez.
             summary: 'API Obs : Quotas de requêtes dépassé'
+          for: 0s
           labels:
             category: api
             severity: medium
@@ -171,6 +173,7 @@ groups:
           annotations:
             description: L'API Climatologique rencontre un taux anormalement élevé d'erreurs. Veuillez investiguez.
             summary: 'API Cli: Taux élevé d''erreurs détecté'
+          for: 0s
           labels:
             category: api
             severity: medium
@@ -178,7 +181,7 @@ groups:
           notification_settings:
             receiver: Endpoint backend
         - uid: degn2bv4z6ayoa
-          title: 'API Climatologique : quotas dépassé (copy)'
+          title: 'API Climatologique : quotas dépassé'
           condition: C
           data:
             - refId: A
@@ -225,6 +228,7 @@ groups:
           annotations:
             description: L'API Climatologique rencontre un taux anormalement élevé de quotas dépassé. Veuillez investiguez.
             summary: 'API Cli : Quotas de requêtes dépassé'
+          for: 0s
           labels:
             category: api
             severity: medium
@@ -289,8 +293,8 @@ groups:
           execErrState: Error
           annotations:
             description: Le container utilise plus de 80% d'un core depuis plus de 5 minutes.
-
             summary: Utilisation CPU élevée détectée
+          for: 0s
           labels:
             category: docker
             severity: warning
@@ -346,6 +350,7 @@ groups:
           annotations:
             description: Le conteneur Nginx est hors service, veuillez le vérifier.
             summary: Nginx Container Down
+          for: 0s
           labels:
             category: docker
             container: nginx
@@ -402,6 +407,7 @@ groups:
           annotations:
             description: Le conteneur Prometheus est hors service, veuillez le vérifier.
             summary: Prometheus Container Down
+          for: 0s
           labels:
             category: docker
             container: prometheus
@@ -458,6 +464,7 @@ groups:
           annotations:
             description: Le conteneur Kafka Exporter est hors service, veuillez le vérifier.
             summary: Kafka Exporter Container Down
+          for: 0s
           labels:
             category: docker
             container: kafka-exporter
@@ -514,6 +521,7 @@ groups:
           annotations:
             description: Le conteneur cAdvisor est hors service, veuillez le vérifier.
             summary: cAdvisor Container Down
+          for: 0s
           labels:
             category: docker
             container: cAdvisor
@@ -570,6 +578,7 @@ groups:
           annotations:
             description: Le conteneur Kafka-UI est hors service, veuillez le vérifier.
             summary: Kafka-UI Container Down
+          for: 0s
           labels:
             category: docker
             container: kafka-ui
@@ -626,6 +635,7 @@ groups:
           annotations:
             description: Le conteneur Node Exporter est hors service, veuillez le vérifier.
             summary: Node Exporter Container Down
+          for: 0s
           labels:
             category: docker
             container: node-exporter
@@ -682,6 +692,7 @@ groups:
           annotations:
             description: Le conteneur Postgres est hors service, veuillez le vérifier.
             summary: Postgres Container Down
+          for: 0s
           labels:
             category: docker
             container: postgres
@@ -738,6 +749,7 @@ groups:
           annotations:
             description: Le conteneur Mongo Exporter est hors service, veuillez le vérifier.
             summary: Mongo Exporter Container Down
+          for: 0s
           labels:
             category: docker
             container: mongo-exporter
@@ -794,6 +806,7 @@ groups:
           annotations:
             description: Le conteneur Kafka est hors service, veuillez le vérifier.
             summary: Kafka Container Down
+          for: 0s
           labels:
             category: docker
             container: kafka
@@ -850,6 +863,7 @@ groups:
           annotations:
             description: Le conteneur Zookeeper est hors service, veuillez le vérifier.
             summary: Zookeeper Container Down
+          for: 0s
           labels:
             category: docker
             container: zookeeper
@@ -906,6 +920,7 @@ groups:
           annotations:
             description: Le conteneur Redis Exporter est hors service, veuillez le vérifier.
             summary: Redis Exporter Container Down
+          for: 0s
           labels:
             category: docker
             container: redis-exporter
@@ -962,6 +977,7 @@ groups:
           annotations:
             description: Le conteneur Redis est hors service, veuillez le vérifier.
             summary: Redis Container Down
+          for: 0s
           labels:
             category: docker
             container: redis
@@ -1018,6 +1034,7 @@ groups:
           annotations:
             description: Le conteneur API Observations est hors service, veuillez le vérifier.
             summary: API Observations Container Down
+          for: 0s
           labels:
             category: docker
             container: api-observations
@@ -1074,6 +1091,7 @@ groups:
           annotations:
             description: Le conteneur Frontend est hors service, veuillez le vérifier.
             summary: Frontend Container Down
+          for: 0s
           labels:
             category: docker
             container: frontend
@@ -1130,6 +1148,7 @@ groups:
           annotations:
             description: Le conteneur Backend est hors service, veuillez le vérifier.
             summary: Backend Container Down
+          for: 0s
           labels:
             category: docker
             container: backend
@@ -1186,6 +1205,7 @@ groups:
           annotations:
             description: Le conteneur Redis Consumer est hors service, veuillez le vérifier.
             summary: Redis Consumer Container Down
+          for: 0s
           labels:
             category: docker
             container: redis-consumer
@@ -1242,6 +1262,7 @@ groups:
           annotations:
             description: Le conteneur API Vigilance est hors service, veuillez le vérifier.
             summary: API Vigilance Container Down
+          for: 0s
           labels:
             category: docker
             container: api-vigilance
@@ -1298,6 +1319,7 @@ groups:
           annotations:
             description: Le conteneur Mongo Consumer est hors service, veuillez le vérifier.
             summary: Mongo Consumer Container Down
+          for: 0s
           labels:
             category: docker
             container: mongo-consumer
@@ -1354,6 +1376,7 @@ groups:
           annotations:
             description: Le conteneur MongoDB est hors service, veuillez le vérifier.
             summary: MongoDB Container Down
+          for: 0s
           labels:
             category: docker
             container: mongoDB
@@ -1410,6 +1433,7 @@ groups:
           annotations:
             description: Le conteneur API Climatologique est hors service, veuillez le vérifier.
             summary: API Climatologique Container Down
+          for: 0s
           labels:
             category: docker
             container: api-clima
