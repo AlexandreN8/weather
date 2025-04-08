@@ -438,7 +438,8 @@ services:
     ports:
       - "3001:3001" 
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:5000 
+      # - NEXT_PUBLIC_API_URL=http://localhost:5000 
+      - NEXT_PUBLIC_API_URL=https://backend.tersaphir.fr
       - PORT=3001
     volumes:
       - ./services/frontend:/usr/src/app
