@@ -11,6 +11,6 @@ datasources:
 
   - name: Grafana Pyroscope
     type: grafana-pyroscope-datasource
-    url: http://localhost:4040
+    url: http://pyroscope:4040
     jsonData:
       minStep: '15s'

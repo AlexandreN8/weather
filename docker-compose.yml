@@ -312,6 +312,18 @@ services:
     networks:
       - pipeline-net
 
+  # Pyroscope : mandatory datasource
+  pyroscope:
+    image: pyroscope/pyroscope:latest
+    container_name: ter_pyroscope
+    ports:
+      - "4040:4040"
+    command:
+      - "server"
+    networks:
+      - pipeline-net
+    restart: unless-stopped
+
   prometheus-node-exporter:
     image: prom/node-exporter:latest
     container_name: ter_prometheus-node-exporter
@@ -438,7 +450,8 @@ services:
     ports:
       - "3001:3001" 
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:5000 
+      - ENV=${ENV}
+      - NEXT_PUBLIC_API_URL=${ENVIRONMENT_URL}
       - PORT=3001
     volumes:
       - ./services/frontend:/usr/src/app
