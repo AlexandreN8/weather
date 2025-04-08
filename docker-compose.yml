@@ -312,6 +312,18 @@ services:
     networks:
       - pipeline-net
 
+  # Pyroscope : mandatory datasource
+  pyroscope:
+    image: pyroscope/pyroscope:latest
+    container_name: ter_pyroscope
+    ports:
+      - "4040:4040"
+    command:
+      - "server"
+    networks:
+      - pipeline-net
+    restart: unless-stopped
+
   prometheus-node-exporter:
     image: prom/node-exporter:latest
     container_name: ter_prometheus-node-exporter
