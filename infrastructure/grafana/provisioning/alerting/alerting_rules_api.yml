@@ -6,7 +6,8 @@ contactPoints:
         - uid: cegjd1yrv48owb
           type: webhook
           settings:
-            url: http://backend:5000/api/alert-webhook
+            # url: http://backend:5000/api/alert-webhook
+            url: https:/backend.tersaphir.fr/api/alert-webhook
           disableResolveMessage: false
 
 groups:

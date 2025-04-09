@@ -5,7 +5,7 @@ let io = null;
 const initSocket = (server) => {
   io = socketIo(server, {
     cors: {
-      origin: "*", // Ajuste cela selon les besoins de sécurité (ex: origine du front-end)
+      origin: "https://tersaphir.fr", // Ajuste cela selon les besoins de sécurité (ex: origine du front-end)
       methods: ["GET", "POST"]
     }
   });
