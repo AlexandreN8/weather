@@ -9,7 +9,9 @@ export default function DBPage() {
 
   // Dashboards URLs
   const dashboards = {
-    redis: "http://localhost:3000/d/xDLNRKUWz/redis-dashboard?orgId=1&kiosk=1&theme=light"
+    // redis: "http://localhost:3000/d/xDLNRKUWz/redis-dashboard?orgId=1&kiosk=1&theme=light"
+    redis: "http://grafana.tersaphir.fr/d/xDLNRKUWz/redis-dashboard?orgId=1&kiosk=1&theme=light"
+
   };
 
   // Handle dashboard click with loading control, prevent fetch errors

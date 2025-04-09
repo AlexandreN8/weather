@@ -9,9 +9,9 @@ export default function SystemPage() {
 
   // Dashboard URLs
   const dashboards = {
-    node: "http://localhost:3000/d/rYdddlPWk/node-exporter-dashboard?orgId=1&kiosk=1&theme=light",
-    docker: "http://localhost:3000/d/pMEd7m0Mz/cadvisor-dashboard?orgId=1&kiosk=1&theme=light",
-    kafka: "http://localhost:3000/d/jwPKIsniz/kafka-dashboard?orgId=1&kiosk=1&theme=light",
+    node: "http://grafana.tersaphir.fr/d/rYdddlPWk/node-exporter-dashboard?orgId=1&kiosk=1&theme=light",
+    docker: "http://grafana.tersaphir.fr/d/pMEd7m0Mz/cadvisor-dashboard?orgId=1&kiosk=1&theme=light",
+    kafka: "http://grafana.tersaphir.fr/d/jwPKIsniz/kafka-dashboard?orgId=1&kiosk=1&theme=light",
   };
 
   // Handle dashboard click with loading control, prevent fetch errors
