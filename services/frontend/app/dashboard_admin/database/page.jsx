@@ -10,7 +10,7 @@ export default function DBPage() {
   // Dashboards URLs
   const dashboards = {
     // redis: "http://localhost:3000/d/xDLNRKUWz/redis-dashboard?orgId=1&kiosk=1&theme=light"
-    redis: "http://grafana.tersaphir.fr/d/xDLNRKUWz/redis-dashboard?orgId=1&kiosk=1&theme=light"
+    redis: "https://grafana.tersaphir.fr/d/xDLNRKUWz/redis-dashboard?orgId=1&kiosk=1&theme=light"
 
   };
 

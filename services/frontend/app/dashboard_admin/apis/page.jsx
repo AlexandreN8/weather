@@ -9,7 +9,7 @@ export default function APIPage() {
         </div>
         {/* Iframe */}
         <iframe 
-          src="http:/grafana.tersaphir.fr/d/aee8hut2g4ykgf/api-dashboard?orgId=1&kiosk=1&theme=light" 
+          src="https:/grafana.tersaphir.fr/d/aee8hut2g4ykgf/api-dashboard?orgId=1&kiosk=1&theme=light" 
           width="100%" 
           height="600" 
           title="Dashboard Grafana"
