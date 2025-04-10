@@ -23,7 +23,7 @@ const mainMenu = [
 ];
 
 const preferencesMenu = [
-  { href: "/dashboard_admin", label: "Paramètres", Icon: IoMdSettings },
+  { href: "#", label: "Paramètres", Icon: IoMdSettings },
   { href: "/", label: "Retour", Icon: RiLogoutBoxLine },
 ];
 
