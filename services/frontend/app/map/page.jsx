@@ -65,7 +65,8 @@ export default function MapPage() {
   };
 
   const filterStations = (search) => {
-    results = results.filter((station) =>
+      let results = corseStations;
+      results = results.filter((station) =>
       station.properties.NOM_USUEL.toLowerCase().includes(search)
     );
     setFilteredStations(results);

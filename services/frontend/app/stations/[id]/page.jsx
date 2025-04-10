@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { WiThermometer, WiHumidity, WiStrongWind, WiBarometer, WiRain } from "react-icons/wi";
-import { Chart, LineController, LineElement, PointElement, LinearScale, Title, CategoryScale } from "chart.js";
+import { Chart, LineController, LineElement, PointElement, LinearScale, Title, CategoryScale, Tooltip } from "chart.js";
 
 export default function StationDashboard() {
   const { id } = useParams();
@@ -66,7 +66,7 @@ export default function StationDashboard() {
   useEffect(() => {
     if (historyData) {
       // Enregistrement de Chart.js et création des graphiques uniquement si les paramètres concernés sont disponibles
-      Chart.register(LineController, LineElement, PointElement, LinearScale, Title, CategoryScale);
+      Chart.register(LineController, LineElement, PointElement, LinearScale, Title, CategoryScale, Tooltip);
   
       // Fonction pour détruire les anciens graphiques 
       const destroyChart = (chartId) => {
@@ -85,140 +85,279 @@ export default function StationDashboard() {
       destroyChart("humidityChart");
       destroyChart("windChart");
   
-      // Température
-      if (ctxTemp && historyData.some((data) => data.t)) {
-        let labels, temperatureData;
-  
-        if (showSevenDays) {
-          // Données par jour + moyenne
-          const groupedByDay = historyData.reduce((acc, data) => {
-            const date = new Date(data.reference_time);
-            const day = date.toLocaleDateString('fr-FR', { weekday: 'long' });
-            if (!acc[day]) acc[day] = [];
-            acc[day].push(data.t - 273.15); // Passage de la température en °C
-            return acc;
-          }, {});
-  
-          // Moyenne pour chaque jour 
-          labels = Object.keys(groupedByDay);
-          temperatureData = labels.map(day => {
-            const temps = groupedByDay[day];
-            return (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1);
-          });
-        } else {
-          // Affichage sur 24h
-          labels = historyData.map((data) => new Date(data.reference_time).toLocaleTimeString());
-          temperatureData = historyData.map((data) => (data.t - 273.15).toFixed(1));
+// Température
+if (ctxTemp && historyData.some((data) => data.t)) {
+  let labels, temperatureData;
+
+  if (showSevenDays) {
+    const groupedByDay = historyData.reduce((acc, data) => {
+      const date = new Date(data.reference_time);
+      const day = date.toLocaleDateString('fr-FR', { weekday: 'long' });
+      if (!acc[day]) acc[day] = [];
+      acc[day].push(data.t - 273.15); // conversion Kelvin -> Celsius
+      return acc;
+    }, {});
+
+    labels = Object.keys(groupedByDay);
+    temperatureData = labels.map(day => {
+      const temps = groupedByDay[day];
+      return (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1);
+    });
+  } else {
+    labels = historyData.map((data) => new Date(data.reference_time).toLocaleTimeString());
+    temperatureData = historyData.map((data) => (data.t - 273.15).toFixed(1));
+  }
+
+  new Chart(ctxTemp, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Température (°C)",
+          data: temperatureData,
+          borderColor: "red",
+          borderWidth: 2,
+          fill: false,
+        },
+      ],
+    },
+    options: {
+      interaction: {
+        mode: 'nearest',
+        intersect: false,
+      },
+      plugins: {
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            label: function (context) {
+              const value = context.parsed.y;
+              return  `🌡️${value} °C`;
+            }
+          }, 
+          displayColors: false,
+        },
+        legend: {
+          display: true,
         }
-  
-        new Chart(ctxTemp, {
-          type: "line",
-          data: {
-            labels,
-            datasets: [
-              {
-                label: "Température (°C)",
-                data: temperatureData,
-                borderColor: "red",
-                borderWidth: 2,
-                fill: false,
-              },
-            ],
+      },
+      scales: {
+        y: {
+          title: {
+            display: true,
+            text: "Température (°C)",
+            font: {
+              size: 16,
+              weight: "bold",
+            },
           },
-        });
-      }
-  
-      // Humidité
-      if (ctxHumidity && historyData.some((data) => data.u)) {
-        let labels, humidityData;
-  
-        if (showSevenDays) {
-          // Grouper les données par jour et calculer la moyenne
-          const groupedByDay = historyData.reduce((acc, data) => {
-            const date = new Date(data.reference_time);
-            const day = date.toLocaleDateString('fr-FR', { weekday: 'long' });
-            if (!acc[day]) acc[day] = [];
-            acc[day].push(data.u); // Humidité
-            return acc;
-          }, {});
-  
-          // Calculer la moyenne pour chaque jour
-          labels = Object.keys(groupedByDay);
-          humidityData = labels.map(day => {
-            const humidityValues = groupedByDay[day];
-            return (humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length).toFixed(1);
-          });
-        } else {
-          // Affichage sur 24h
-          labels = historyData.map((data) => new Date(data.reference_time).toLocaleTimeString());
-          humidityData = historyData.map((data) => data.u);
+          ticks: {
+            callback: (value) => value,
+            stepSize: 0.5,
+            min: 0.5, 
+          },
+        },
+        x: {
+          title: {
+            display: true,
+            text: showSevenDays ? "Jour" : "Heure",
+            font: {
+              size: 16,
+              weight: "bold",
+            },
+          },
+        },
+      },
+    }
+    
+  });
+}
+
+// Humidité
+if (ctxHumidity && historyData.some((data) => data.u)) {
+  let labels, humidityData;
+
+  if (showSevenDays) {
+    const groupedByDay = historyData.reduce((acc, data) => {
+      const date = new Date(data.reference_time);
+      const day = date.toLocaleDateString('fr-FR', { weekday: 'long' });
+      if (!acc[day]) acc[day] = [];
+      acc[day].push(data.u);
+      return acc;
+    }, {});
+
+    labels = Object.keys(groupedByDay);
+    humidityData = labels.map(day => {
+      const humidityValues = groupedByDay[day];
+      return (humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length).toFixed(1);
+    });
+  } else {
+    labels = historyData.map((data) => new Date(data.reference_time).toLocaleTimeString());
+    humidityData = historyData.map((data) => data.u);
+  }
+
+  new Chart(ctxHumidity, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Humidité (%)",
+          data: humidityData,
+          borderColor: "blue",
+          borderWidth: 2,
+          fill: false,
+        },
+      ],
+    },
+    options: {
+      interaction: {
+        mode: 'nearest',
+        intersect: false,
+      },
+      plugins: {
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            label: function (context) {
+              const value = context.parsed.y;
+              return `💧${value} %`;
+            }
+          },
+          displayColors: false,
+        },
+        legend: {
+          display: true,
         }
-  
-        new Chart(ctxHumidity, {
-          type: "line",
-          data: {
-            labels,
-            datasets: [
-              {
-                label: "Humidité (%)",
-                data: humidityData,
-                borderColor: "blue",
-                borderWidth: 2,
-                fill: false,
-              },
-            ],
+      },
+      scales: {
+        y: {
+          title: {
+            display: true,
+            text: "Humidité (%)",
+            font: {
+              size: 16,
+              weight: "bold",
+            }
           },
-        });
-      }
-  
-      // Vent (force du vent)
-      if (ctxWind && historyData.some((data) => data.ff)) {
-        let labels, windSpeedData;
-  
-        if (showSevenDays) {
-          // Grouper les données par jour et calculer la moyenne
-          const groupedByDay = historyData.reduce((acc, data) => {
-            const date = new Date(data.reference_time);
-            const day = date.toLocaleDateString('fr-FR', { weekday: 'long' });
-            if (!acc[day]) acc[day] = [];
-            acc[day].push(data.ff); // Force du vent
-            return acc;
-          }, {});
-  
-          // Calculer la moyenne pour chaque jour
-          labels = Object.keys(groupedByDay);
-          windSpeedData = labels.map(day => {
-            const windSpeeds = groupedByDay[day];
-            return (windSpeeds.reduce((a, b) => a + b, 0) / windSpeeds.length).toFixed(1);
-          });
-        } else {
-          // Affichage sur 24h
-          labels = historyData.map((data) => new Date(data.reference_time).toLocaleTimeString());
-          windSpeedData = historyData.map((data) => data.ff);
+          ticks: {
+            callback: (value) => value,
+            stepSize: 0.5,
+            min: 0.5, 
+          },
+        },
+        x: {
+          title: {
+            display: true,
+            text: showSevenDays ? "Jour" : "Heure",
+            font: {
+              size: 16,
+              weight: "bold",
+            }
+          },
+        },
+      },
+    }
+    
+  });
+}
+
+// Vent
+if (ctxWind && historyData.some((data) => data.ff)) {
+  let labels, windSpeedData;
+
+  if (showSevenDays) {
+    const groupedByDay = historyData.reduce((acc, data) => {
+      const date = new Date(data.reference_time);
+      const day = date.toLocaleDateString('fr-FR', { weekday: 'long' });
+      if (!acc[day]) acc[day] = [];
+      acc[day].push(data.ff);
+      return acc;
+    }, {});
+
+    labels = Object.keys(groupedByDay);
+    windSpeedData = labels.map(day => {
+      const windSpeeds = groupedByDay[day];
+      return (windSpeeds.reduce((a, b) => a + b, 0) / windSpeeds.length).toFixed(1);
+    });
+  } else {
+    labels = historyData.map((data) => new Date(data.reference_time).toLocaleTimeString());
+    windSpeedData = historyData.map((data) => data.ff);
+  }
+
+  new Chart(ctxWind, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Vitesse du vent (m/s)",
+          data: windSpeedData,
+          borderColor: "green",
+          borderWidth: 2,
+          fill: false,
+        },
+      ],
+    },
+    options: {
+      interaction: {
+        mode: 'nearest',
+        intersect: false,
+      },
+      plugins: {
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            label: function (context) {
+              const value = context.parsed.y;
+              return `🍃 ${value} m/s`;
+            }
+          },
+          displayColors: false,
+        },
+        legend: {
+          display: true,
         }
-  
-        new Chart(ctxWind, {
-          type: "line",
-          data: {
-            labels,
-            datasets: [
-              {
-                label: "Vitesse du vent (m/s)",
-                data: windSpeedData,
-                borderColor: "green",
-                borderWidth: 2,
-                fill: false,
-              },
-            ],
+      },
+      scales: {
+        y: {
+          title: {
+            display: true,
+            text: "Vitesse (m/s)",
+            font: {
+              size: 16,
+              weight: "bold",
+            }
           },
-        });
-      }
+          ticks: {
+            callback: (value) => value,
+            stepSize: 0.5,
+            min: 0.5, 
+          },
+        },
+        x: {
+          title: {
+            display: true,
+            text: showSevenDays ? "Jour" : "Heure",
+            font: {
+              size: 16,
+              weight: "bold",
+            }
+          },
+        },
+      },
+    },
+  });
+  
+}
+
     }
   }, [historyData, showSevenDays]); // Données selon la periode demandée
   if (loading) return <p className="text-center mt-10 text-lg font-semibold">Chargement des données...</p>;
 
   if (!stationData)
-    return <p className="text-center mt-10 text-red-500 font-semibold">Aucune donnée trouvée pour cette station.</p>;
+    return <p className="text-center mt-10 text-red-500 font-semibold">❌ Aucune donnée trouvée pour cette station.</p>;
 
   // Conversion des données
   const temperatureC = stationData.t !== undefined && stationData.t !== null 
@@ -248,7 +387,7 @@ export default function StationDashboard() {
           Station météo : {stationData.name || id}
         </h1>
     
-        <p className="text-lg font-semibold mb-4">Dernière mise à jour : {lastDataTime}</p>
+        <p className="text-lg font-semibold mb-4">📅 Dernière mesure : {lastDataTime}</p>
     
         <div className="grid grid-cols-1 gap-6 mt-4">
           {/* Informations météo */}
