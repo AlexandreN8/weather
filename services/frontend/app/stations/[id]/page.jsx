@@ -294,21 +294,21 @@ export default function StationDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {historyData && historyData.some((data) => data.t) && (
               <div className="bg-white p-4 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold text-center">Graphique Température ({showSevenDays ? '7 jours' : '24h'})</h2>
+                <h2 className="text-xl font-semibold text-center">Température ({showSevenDays ? '7 jours' : '24h'})</h2>
                 <canvas id="tempChart" width="400" height="200"></canvas>
               </div>
             )}
     
             {historyData && historyData.some((data) => data.u) && (
               <div className="bg-white p-4 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold text-center">Graphique Humidité ({showSevenDays ? '7 jours' : '24h'})</h2>
+                <h2 className="text-xl font-semibold text-center">Humidité ({showSevenDays ? '7 jours' : '24h'})</h2>
                 <canvas id="humidityChart" width="400" height="200"></canvas>
               </div>      
             )}
     
             {historyData && historyData.some((data) => data.ff) && (
               <div className="bg-white p-4 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold text-center">Graphique Vent ({showSevenDays ? '7 jours' : '24h'})</h2>
+                <h2 className="text-xl font-semibold text-center">Vent ({showSevenDays ? '7 jours' : '24h'})</h2>
                 <canvas id="windChart" width="400" height="200"></canvas>
               </div>
             )}

@@ -43,7 +43,7 @@ const corseStations = [{
         "ficheClimReduite": 1
     }
 },
- {
+ /*{
     "geometry": { "type": "Point", "coordinates": [8.882667, 42.3245] },
     "type": "Feature",
     "properties": {
@@ -57,7 +57,7 @@ const corseStations = [{
         "ficheClimComplete": 0,
         "ficheClimReduite": 0
     }
-},
+},*/
 {
 "geometry": {
   "type": "Point",
@@ -268,7 +268,7 @@ const corseStations = [{
         "ficheClimReduite": 0
     }
 },
-{
+/*{
     "geometry": { "type": "Point", "coordinates": [9.3595, 43.003833] },
     "type": "Feature",
     "properties": {
@@ -282,7 +282,7 @@ const corseStations = [{
         "ficheClimComplete": 0,
         "ficheClimReduite": 0
     }
-},
+},*/
 {
     "geometry": { "type": "Point", "coordinates": [8.838667, 42.263333] },
     "type": "Feature",
@@ -506,7 +506,7 @@ const corseStations = [{
         "ficheClimComplete": 1,
         "ficheClimReduite": 1
     }
-},{
+},/*{
     "geometry": { "type": "Point", "coordinates": [8.999833, 42.517833] },
     "type": "Feature",
     "properties": {
@@ -520,7 +520,7 @@ const corseStations = [{
         "ficheClimComplete": 0,
         "ficheClimReduite": 0
     }
-},
+},*/
 {
     "geometry": { "type": "Point", "coordinates": [9.363167, 41.594833] },
     "type": "Feature",
@@ -596,7 +596,7 @@ const corseStations = [{
         "ficheClimReduite": 1
     }
 },
-{
+/*{
     "geometry": { "type": "Point", "coordinates": [9.266167, 42.367167] },
     "type": "Feature",
     "properties": {
@@ -610,7 +610,7 @@ const corseStations = [{
         "ficheClimComplete": 0,
         "ficheClimReduite": 1
     }
-},
+},*/
 {
     "geometry": { "type": "Point", "coordinates": [9.2645, 42.364167] },
     "type": "Feature",
@@ -775,7 +775,7 @@ const corseStations = [{
         "ficheClimReduite": 0
     }
 },
-{
+/*{
     "geometry": { "type": "Point", "coordinates": [9.05, 42.21] },
     "type": "Feature",
     "properties": {
@@ -789,7 +789,7 @@ const corseStations = [{
         "ficheClimComplete": 0,
         "ficheClimReduite": 0
     }
-},
+},*/
 {
     "geometry": { "type": "Point", "coordinates": [9.400833, 41.921833] },
     "type": "Feature",
