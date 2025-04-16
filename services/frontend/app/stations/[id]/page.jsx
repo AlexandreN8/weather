@@ -19,23 +19,28 @@ export default function StationDashboard() {
           typeof window !== "undefined" && window.location.hostname === "localhost"
             ? "http://localhost:5000"
             : "http://ter_backend:5000";
-
+  
         const response = await fetch(`${backendHost}/api/station/${id}`);
-
-        if (!response.ok) throw new Error("Erreur lors de la récupération des données");
-
+  
+        if (!response.ok) {
+          console.warn("Aucune donnée trouvée pour la station", id);
+          setStationData(null);
+          return;
+        }
+  
         const data = await response.json();
         console.log("Données reçues :", data);
         setStationData(data);
       } catch (error) {
-        console.error("Erreur fetch données:", error);
+        console.warn("Erreur réseau (peut être normale) :", error.message);
       } finally {
         setLoading(false);
       }
     }
-
+  
     if (id) fetchData();
   }, [id]);
+  
 
   useEffect(() => {
     async function fetchHistory() {
@@ -46,22 +51,42 @@ export default function StationDashboard() {
             : "http://ter_backend:5000";
 
         const endpoint = showSevenDays
-          ? `${backendHost}/api/station/history/7d/${id}`  // Affiche les 7 derniers jours
-          : `${backendHost}/api/station/history/24h/${id}`; // Affiche les 24 dernières heures
+          ? `${backendHost}/api/station/history/7d/${id}`
+          : `${backendHost}/api/station/history/24h/${id}`;
 
         const response = await fetch(endpoint);
-        if (!response.ok) throw new Error("Erreur lors de la récupération des données historiques");
+        if (!response.ok) {
+          console.warn("Aucune donnée historique disponible actuellement.");
+          setHistoryData(null);
+          return;
+        }
 
         const data = await response.json();
-        console.log("Données historiques :", data);  // Ajout du log pour vérifier les données
+        console.log("Données historiques :", data);
         setHistoryData(data);
       } catch (error) {
         console.error("Erreur fetch historique:", error);
+        setHistoryData(null);
       }
     }
 
     if (stationData) fetchHistory();
   }, [stationData, showSevenDays]); // Recharger les données lorsque l'état showSevenDays change
+
+  function downloadDataAsJson(data, filename = "data.json") {
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+  
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+  
+    URL.revokeObjectURL(url);
+  }
+  
 
   useEffect(() => {
     if (historyData) {
@@ -354,22 +379,28 @@ if (ctxWind && historyData.some((data) => data.ff)) {
 
     }
   }, [historyData, showSevenDays]); // Données selon la periode demandée
-  if (loading) return <p className="text-center mt-10 text-lg font-semibold">Chargement des données...</p>;
-
-  if (!stationData)
-    return <p className="text-center mt-10 text-red-500 font-semibold">❌ Aucune donnée trouvée pour cette station.</p>;
-
-  // Conversion des données
-  const temperatureC = stationData.t !== undefined && stationData.t !== null 
-    ? (stationData.t - 273.15).toFixed(1) 
-    : "N/A";
+  if (loading) {
+    return <p className="text-center mt-10">⏳ Chargement des données...</p>;
+  }
+  
+  if (!stationData) {
+    return (
+      <p className="text-center text-red-500 font-medium mt-10">
+        ❌ Aucune donnée disponible pour cette station.
+      </p>
+    );
+  }
+  
+  // Ici, tu es sûr que stationData est non nul, donc tu peux faire les calculs 👇
+  const temperatureC =
+    stationData.t !== undefined && stationData.t !== null
+      ? (stationData.t - 273.15).toFixed(1)
+      : "N/A";
   const humidity = stationData.u ?? "N/A";
   const windSpeed = stationData.ff ?? "N/A";
   const windDirection = stationData.dd ?? "N/A";
   const pressure = stationData.pmer ? (stationData.pmer / 100).toFixed(2) : "N/A";
   const precipitation = stationData.rr_per ?? "N/A";
-
-  // Récupération de la date de la dernière donnée
   const lastDataTime = historyData?.length
     ? new Date(historyData[historyData.length - 1].reference_time).toLocaleString()
     : "Non disponible";
@@ -430,38 +461,58 @@ if (ctxWind && historyData.some((data) => data.ff)) {
           </div>
     
           {/* Graphiques */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {historyData && historyData.some((data) => data.t) && (
-              <div className="bg-white p-4 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold text-center">Température ({showSevenDays ? '7 jours' : '24h'})</h2>
-                <canvas id="tempChart" width="400" height="200"></canvas>
-              </div>
-            )}
-    
-            {historyData && historyData.some((data) => data.u) && (
-              <div className="bg-white p-4 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold text-center">Humidité ({showSevenDays ? '7 jours' : '24h'})</h2>
-                <canvas id="humidityChart" width="400" height="200"></canvas>
-              </div>      
-            )}
-    
-            {historyData && historyData.some((data) => data.ff) && (
-              <div className="bg-white p-4 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold text-center">Vent ({showSevenDays ? '7 jours' : '24h'})</h2>
-                <canvas id="windChart" width="400" height="200"></canvas>
-              </div>
-            )}
-          </div>
-        </div>
-    
-        {/* Bouton pour changer de période */}
-        <button
-          onClick={() => setShowSevenDays(!showSevenDays)}
-          className="mt-6 py-2 px-4 bg-green-500 text-white font-semibold rounded hover:bg-green-600"
-        >
-          Afficher les {showSevenDays ? "24 dernières heures" : "7 derniers jours"}
-        </button>
+          {historyData === null || historyData.length === 0 ? (
+  <p className="text-center text-gray-500 text-lg font-medium mt-6">
+    🕒 En attente de données historiques...
+  </p>
+) : (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+    {historyData.some((data) => data.t) && (
+      <div className="bg-white p-4 rounded-lg shadow-md">
+        <h2 className="text-xl font-semibold text-center">Température ({showSevenDays ? '7 jours' : '24h'})</h2>
+        <canvas id="tempChart" width="400" height="200"></canvas>
       </div>
-    );
+    )}
+
+    {historyData.some((data) => data.u) && (
+      <div className="bg-white p-4 rounded-lg shadow-md">
+        <h2 className="text-xl font-semibold text-center">Humidité ({showSevenDays ? '7 jours' : '24h'})</h2>
+        <canvas id="humidityChart" width="400" height="200"></canvas>
+      </div>
+    )}
+
+    {historyData.some((data) => data.ff) && (
+      <div className="bg-white p-4 rounded-lg shadow-md">
+        <h2 className="text-xl font-semibold text-center">Vent ({showSevenDays ? '7 jours' : '24h'})</h2>
+        <canvas id="windChart" width="400" height="200"></canvas>
+      </div>
+    )}
+  </div>
+)}
+
+</div>
     
+ {/* Bouton pour changer de période */}
+ <button
+  onClick={() => setShowSevenDays(!showSevenDays)}
+  className="mt-6 py-2 px-4 bg-green-500 text-white font-semibold rounded hover:bg-green-600"
+        >
+  Afficher les {showSevenDays ? "24 dernières heures" : "7 derniers jours"}
+  </button>
+  {/* Bouton pour télécharger les données affichées */}
+{historyData && (
+  <button
+    onClick={() =>
+      downloadDataAsJson(
+        historyData,
+        `${stationData.name}_${showSevenDays ? "7jours" : "24h"}.json`
+      )
+    }
+    className="mt-4 ml-4 py-2 px-4 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600"
+  >
+    💾 Télécharger les données {showSevenDays ? "sur 7 jours" : "sur 24h"}
+  </button>
+)}
+      </div>
+    );  
 }
