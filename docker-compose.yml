@@ -25,8 +25,6 @@ services:
       - pipeline-net
     restart: unless-stopped
 
-    
-
 
   #-------------------------------------------------------
   # Kafka & Zookeeper
@@ -460,6 +458,7 @@ services:
       - backend
     networks:
       - pipeline-net
+    restart: alway
 
 volumes:
   # npm_data:
