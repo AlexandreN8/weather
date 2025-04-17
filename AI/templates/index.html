@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Météo Prédiction</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Prédiction de la Température et des Précipitations</h1>
+        
+        <!-- Formulaire pour soumettre les données -->
+        <form action="/predict" method="POST">
+            <button type="submit" class="btn btn-primary mt-3">Lancer la Prédiction</button>
+        </form>
+
+        <!-- Affichage des résultats -->
+        {% if tables %}
+            <h2 class="mt-5">Résultats des Prédictions</h2>
+            <div id="prediction-results" class="table-responsive">
+                {{ tables|safe }}
+            </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>
