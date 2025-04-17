@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import { WiThermometer, WiHumidity, WiStrongWind, WiBarometer, WiRain } from "react-icons/wi";
 import { Chart, LineController, LineElement, PointElement, LinearScale, Title, CategoryScale, Tooltip } from "chart.js";
@@ -11,6 +11,11 @@ export default function StationDashboard() {
   const [loading, setLoading] = useState(true);
   const [historyData, setHistoryData] = useState(null);
   const [showSevenDays, setShowSevenDays] = useState(false); // Afficher les 7 derniers jours ou non
+
+  const cache = useRef({
+    "24h": { data: null, timestamp: 0 },
+    "7d": { data: null, timestamp: 0 },
+  });
 
   useEffect(() => {
     async function fetchData() {
@@ -42,36 +47,51 @@ export default function StationDashboard() {
   }, [id]);
   
 
-  useEffect(() => {
-    async function fetchHistory() {
-      try {
-        const backendHost =
-          typeof window !== "undefined" && window.location.hostname === "localhost"
-            ? "http://localhost:5000"
-            : "http://ter_backend:5000";
+ useEffect(() => {
+  async function fetchHistory(force = false) {
+    const key = showSevenDays ? "7d" : "24h";
+    const now = Date.now();
+    const cacheEntry = cache.current[key];
 
-        const endpoint = showSevenDays
-          ? `${backendHost}/api/station/history/7d/${id}`
-          : `${backendHost}/api/station/history/24h/${id}`;
-
-        const response = await fetch(endpoint);
-        if (!response.ok) {
-          console.warn("Aucune donnée historique disponible actuellement.");
-          setHistoryData(null);
-          return;
-        }
-
-        const data = await response.json();
-        console.log("Données historiques :", data);
-        setHistoryData(data);
-      } catch (error) {
-        console.error("Erreur fetch historique:", error);
-        setHistoryData(null);
-      }
+    // Si cache valide (<5 min) et pas de rafraîchissement forcé
+    if (!force && cacheEntry.data && now - cacheEntry.timestamp < 5 * 60 * 1000) {
+      setHistoryData(cacheEntry.data);
+      return;
     }
 
-    if (stationData) fetchHistory();
-  }, [stationData, showSevenDays]); // Recharger les données lorsque l'état showSevenDays change
+    try {
+      const backendHost =
+        typeof window !== "undefined" && window.location.hostname === "localhost"
+          ? "http://localhost:5000"
+          : "http://ter_backend:5000";
+
+      const endpoint = showSevenDays
+        ? `${backendHost}/api/station/history/7d/${id}`
+        : `${backendHost}/api/station/history/24h/${id}`;
+
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        console.warn("Aucune donnée historique disponible.");
+        setHistoryData(null);
+        return;
+      }
+
+      const data = await response.json();
+      cache.current[key] = { data, timestamp: now };
+      setHistoryData(data);
+    } catch (error) {
+      console.warn("Erreur fetch historique:", error);
+      setHistoryData(null);
+    }
+  }
+
+  if (stationData) {
+    fetchHistory(); // Chargement initial (avec cache)
+    const interval = setInterval(() => fetchHistory(true), 5 * 60 * 1000); // Rafraîchissement forcé
+
+    return () => clearInterval(interval); // Nettoyage du timer si `stationData` change
+  }
+}, [stationData, showSevenDays]); // Recharger les données lorsque l'état showSevenDays change
 
   function downloadDataAsJson(data, filename = "data.json") {
     const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -86,6 +106,41 @@ export default function StationDashboard() {
   
     URL.revokeObjectURL(url);
   }
+
+  function downloadChartAsPng(chartId, filename) {
+    const chart = Chart.getChart(chartId);
+    if (!chart) {
+      console.warn("Chart non trouvé :", chartId);
+      return;
+    }
+  
+    const url = chart.toBase64Image(); // Obtenir l'image
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+  }
+  function downloadAllChartsAsPng(showSevenDays) {
+    const suffix = showSevenDays ? "7jours" : "24h";
+    const charts = [
+      { id: "tempChart", filename: `temperature_${suffix}.png` },
+      { id: "humidityChart", filename: `humidite_${suffix}.png` },
+      { id: "windChart", filename: `vent_${suffix}.png` },
+    ];
+  
+    charts.forEach(({ id, filename }) => {
+      const chart = Chart.getChart(id);
+      if (chart) {
+        const url = chart.toBase64Image();
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.click();
+      }
+    });
+  }
+  
+  
   
 
   useEffect(() => {
@@ -471,6 +526,12 @@ if (ctxWind && historyData.some((data) => data.ff)) {
       <div className="bg-white p-4 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-center">Température ({showSevenDays ? '7 jours' : '24h'})</h2>
         <canvas id="tempChart" width="400" height="200"></canvas>
+        <button
+      onClick={() => downloadChartAsPng("tempChart", "temperature.png")}
+      className="mt-2 px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+    >
+      📷 Exporter
+    </button>
       </div>
     )}
 
@@ -478,6 +539,12 @@ if (ctxWind && historyData.some((data) => data.ff)) {
       <div className="bg-white p-4 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-center">Humidité ({showSevenDays ? '7 jours' : '24h'})</h2>
         <canvas id="humidityChart" width="400" height="200"></canvas>
+        <button
+      onClick={() => downloadChartAsPng("humidityChart", "humidite.png")}
+      className="mt-2 px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+    >
+      📷 Exporter
+    </button>
       </div>
     )}
 
@@ -485,6 +552,12 @@ if (ctxWind && historyData.some((data) => data.ff)) {
       <div className="bg-white p-4 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-center">Vent ({showSevenDays ? '7 jours' : '24h'})</h2>
         <canvas id="windChart" width="400" height="200"></canvas>
+        <button
+      onClick={() => downloadChartAsPng("windChart", "vent.png")}
+      className="mt-2 px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+    >
+      📷 Exporter
+    </button>
       </div>
     )}
   </div>
@@ -492,27 +565,38 @@ if (ctxWind && historyData.some((data) => data.ff)) {
 
 </div>
     
- {/* Bouton pour changer de période */}
- <button
-  onClick={() => setShowSevenDays(!showSevenDays)}
-  className="mt-6 py-2 px-4 bg-green-500 text-white font-semibold rounded hover:bg-green-600"
-        >
-  Afficher les {showSevenDays ? "24 dernières heures" : "7 derniers jours"}
-  </button>
-  {/* Bouton pour télécharger les données affichées */}
-{historyData && (
+<div className="mt-6 flex flex-wrap justify-center gap-4 w-full">
+  {/* Bouton pour changer de période */}
   <button
-    onClick={() =>
-      downloadDataAsJson(
-        historyData,
-        `${stationData.name}_${showSevenDays ? "7jours" : "24h"}.json`
-      )
-    }
-    className="mt-4 ml-4 py-2 px-4 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600"
+    onClick={() => setShowSevenDays(!showSevenDays)}
+    className="py-2 px-4 bg-green-500 text-white font-semibold rounded hover:bg-green-600"
   >
-    💾 Télécharger les données {showSevenDays ? "sur 7 jours" : "sur 24h"}
+    Afficher les {showSevenDays ? "24 dernières heures" : "7 derniers jours"}
   </button>
-)}
+
+  {/* Bouton pour exporter les graphes */}
+  <button
+    onClick={() => downloadAllChartsAsPng(showSevenDays)}
+    className="py-2 px-4 bg-purple-500 text-white font-semibold rounded hover:bg-purple-600"
+  >
+    📦 Exporter les graphes sur {showSevenDays ? "7 jours" : "24h"}
+  </button>
+
+  {/* Bouton pour télécharger les données */}
+  {historyData && (
+    <button
+      onClick={() =>
+        downloadDataAsJson(
+          historyData,
+          `${stationData.name}_${showSevenDays ? "7jours" : "24h"}.json`
+        )
+      }
+      className="py-2 px-4 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600"
+    >
+      💾 Télécharger les données {showSevenDays ? "sur 7 jours" : "sur 24h"}
+    </button>
+  )}
+</div>
       </div>
     );  
 }
