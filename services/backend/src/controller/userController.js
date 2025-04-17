@@ -5,10 +5,10 @@ const { sendConfirmationEmail } = require('../config/mailer');
 
 // fonction qui permet d'enregistrer un nouvel utilisateur
 async function register(req, res) {
-  const { email, nom, prenom, password, role } = req.body;
+  const { email, nom, prenom, password} = req.body;
   
   // Vérifier que les champs requis sont fournis
-  if (!email || !nom || !prenom || !password || !role) {
+  if (!email || !nom || !prenom || !password) {
     return res.status(400).json({ error: "Email, nom, prenom, password et role sont requis." });
   }
   
@@ -24,7 +24,7 @@ async function register(req, res) {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     
     // Créer l'utilisateur dans la base de données
-    const newUser = await createUser(email, nom, prenom, hashedPassword, role);
+    const newUser = await createUser(email, nom, prenom, hashedPassword);
 
     // Envoyer l'e-mail de confirmation ici
     await sendConfirmationEmail(email, prenom);
