@@ -101,3 +101,26 @@ router.get('/', async (req, res) => {
 });
 
 module.exports = router;
+
+// Route pour récupérer l'historique des 7 derniers jours
+router.get('/history/7d/:stationId', async (req, res) => {
+  try {
+    const { stationId } = req.params;
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - 7); // 7 jours avant la date actuelle
+
+    const history = await StationHistory.find({
+      station_id: stationId,
+      reference_time: { $gte: startDate, $lte: endDate }
+    }).sort({ reference_time: 1 });
+
+    if (!history || history.length === 0) {
+      return res.status(404).json({ error: 'Aucune donnée historique trouvée pour les 7 derniers jours' });
+    }
+    res.json(history);
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'historique pour les 7 derniers jours:", error);
+    res.status(500).json({ error: "Erreur serveur lors de la récupération de l'historique" });
+  }
+});
